@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+
+<body>
+    <nav>
+        <a href="{{ url_for('html.home') }}">Homepage</a>
+        <a href="{{ url_for('html.orders') }}">Upload Prescription</a>
+        <a href="{{ url_for('html.orders') }}">Prescription History</a>
+        <a href="{{ url_for('html.orders') }}">Track Order</a>
+        <a href="{{ url_for('html.orders') }}">Support</a>
+        <a href="{{ url_for('html.customers') }}">Register</a>
+        <a href="{{ url_for('html.products') }}">Login</a>
+        
+    </nav>
+    <a href="{{ url_for('html.home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Trader Chris Logo" class="logo"></a>   
+    <h1> Welcome to Drugs2Door!</h1>
+    
+    {% if request.path == url_for('html.home') %}
+    <div class="buttons">
+        <a href="{{ url_for('html.customers') }}" class="big-button">Customers</a>
+        <a href="{{ url_for('html.products') }}" class="big-button">Products</a>
+        <a href="{{ url_for('html.orders') }}" class="big-button">Orders</a>
+    </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+</body>
+</html>
