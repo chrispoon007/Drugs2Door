@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Orders/Refills</h2>
+
+{% if current_user.is_authenticated %}
+  {% if current_user.orders %}
+    <ul>
+      {% for order in current_user.orders %}
+        <li>
+          Order ID: {{ order.id }}<br>
+          Customer: {{ order.customer.name }}<br>
+          <a href="#">View Details</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No orders to show.</p>
+  {% endif %}
+{% else %}
+  <p>You need to be logged in to view your orders.</p>
+  <a href="{{ url_for('login') }}">Login</a>
+{% endif %}
+
+{% endblock %}
