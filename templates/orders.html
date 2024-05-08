@@ -5,15 +5,30 @@
 
 {% if current_user.is_authenticated %}
   {% if current_user.orders %}
-    <ul>
-      {% for order in current_user.orders %}
-        <li>
-          Order ID: {{ order.id }}<br>
-          Customer: {{ order.customer.name }}<br>
-          <a href="#">View Details</a>
-        </li>
-      {% endfor %}
-    </ul>
+    <table>
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Drug Name</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Date Delivered</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in current_user.orders %}
+          {% for drug_order in order.items %}
+            <tr>
+              <td>{{ order.id }}</td>
+              <td>{{ drug_order.drug.name }}</td>
+              <td>&#36;{{ drug_order.drug.price }}</td>
+              <td>{{ drug_order.quantity }}</td>
+              <td>{{ order.date_delivered or 'Not Delivered Yet' }}</td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
   {% else %}
     <p>No orders to show.</p>
   {% endif %}
