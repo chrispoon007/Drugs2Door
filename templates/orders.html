@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Orders/Refills</h2>
+
+{% if current_user.is_authenticated %}
+  {% if current_user.orders %}
+    <table>
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Drug Name</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Date Delivered</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in current_user.orders %}
+          {% for drug_order in order.items %}
+            <tr>
+              <td>{{ order.id }}</td>
+              <td>{{ drug_order.drug.name }}</td>
+              <td>&#36;{{ drug_order.drug.price }}</td>
+              <td>{{ drug_order.quantity }}</td>
+              <td>{{ order.date_delivered or 'Not Delivered Yet' }}</td>
+            </tr>
+          {% endfor %}
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No orders to show.</p>
+  {% endif %}
+{% else %}
+  <p>You need to be logged in to view your orders.</p>
+  <div style="text-align: center;">
+    <a href="{{ url_for('login') }}">Login</a>
+  </div>
+{% endif %}
+
+{% endblock %}
