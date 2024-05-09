@@ -3,10 +3,11 @@ from pathlib import Path
 from db import db
 from models import Drug, Order, DrugOrder, User
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import func 
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo
-from passlib.hash import scrypt  # Import Scrypt from passlib
+from passlib.hash import scrypt 
 from forms import RegistrationForm, LoginForm, UserUpdateForm
 from flask_login import login_manager, login_required, current_user, login_user, LoginManager, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -33,11 +34,10 @@ def register():
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user:
-            # A user with this email already exists, handle accordingly
             flash('A user with this email already exists. Please log in or use a different email.', 'danger')
         else:
-            hashed_password = scrypt.encrypt(form.password.data)  # Hash password with Scrypt
-            user = User(username=form.username.data, email=form.email.data, password=hashed_password)
+            hashed_password = scrypt.encrypt(form.password.data)  
+            user = User(name=form.name.data, email=form.email.data, password=hashed_password)
             db.session.add(user)
             db.session.commit()
             flash('Your account has been created! You can now log in.', 'success')
@@ -86,9 +86,9 @@ def support():
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data).first()
+        user = User.query.filter(func.lower(User.email) == func.lower(form.email.data)).first()
         if user:
-            if user.password and scrypt.verify(form.password.data, user.password):  # Verify with Scrypt
+            if user.password and scrypt.verify(form.password.data, user.password): 
                 login_user(user)
                 flash('You have successfully logged in!', 'success')
                 return redirect(url_for('dashboard'))
@@ -107,27 +107,24 @@ def logout():
 
 # Dashboard Route
 @app.route("/dashboard")
-@login_required
 def dashboard():
-    return render_template('dashboard.html', title='Dashboard', name=current_user.username, email=current_user.email)
+    if current_user.is_authenticated:
+        return render_template('dashboard.html', title='Dashboard', name=current_user.name, email=current_user.email)
+    else:
+        return redirect(url_for('login'))
 
 # User details route
-from passlib.hash import scrypt  # Import Scrypt
-
 @app.route('/userdetails', methods=['GET', 'POST'])
 @login_required
 def userdetails():
     form = UserUpdateForm()
 
     if form.validate_on_submit():
-        # Check current password using Scrypt verification
         if scrypt.verify(form.current_password.data, current_user.password):
-            current_user.username = form.name.data
             current_user.address = form.address.data
             current_user.phone = form.phone.data
 
             if form.new_password.data:
-                # Hash new password using Scrypt
                 current_user.password = scrypt.encrypt(form.new_password.data)
 
             db.session.commit()
@@ -137,14 +134,16 @@ def userdetails():
             flash('Incorrect current password.', 'error')
 
     elif request.method == 'GET':
-        form.name.data = current_user.username
+        form.name.data = current_user.name
         form.address.data = current_user.address
         form.phone.data = current_user.phone
+        form.email.data = current_user.email
+        
 
     return render_template('userdetails.html', title='User Details', form=form)
 
 
-@app.route("/api/users")  # Changed route name to users
+@app.route("/api/users") 
 def users_json():
     statement = db.select(User).order_by(User.name)
     results = db.session.execute(statement)
@@ -152,8 +151,8 @@ def users_json():
     for user in results.scalars():
         json_record = {
             "id": user.id,
-            "name": user.name,  # Assuming User model has a name field
-            "phone": user.phone,  # Assuming User model has a phone field
+            "name": user.name, 
+            "phone": user.phone,
             # Add other relevant user data if needed
         }
         users.append(json_record)
@@ -165,8 +164,7 @@ def create_user():
     data = request.json
     if not data or "name" not in data or "phone" not in data:
         return "Invalid request", 400
-    new_user = User(name=data["name"], phone=data["phone"])  # Use User model
-    db.session.add(new_user)
+    new_user = User(name=data["name"], phone=data["phone"]) 
     try:
         db.session.commit()
     except IntegrityError:
@@ -193,7 +191,6 @@ def drugs_json():
       "id": drug.id,
       "name": drug.name,
       "price": drug.price,
-      "stock": drug.stock,  # Assuming a field for available quantity
     }
     drugs.append(json_record)
   return jsonify(drugs)

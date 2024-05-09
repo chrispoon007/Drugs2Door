@@ -34,7 +34,9 @@
   {% endif %}
 {% else %}
   <p>You need to be logged in to view your orders.</p>
-  <a href="{{ url_for('login') }}">Login</a>
+  <div style="text-align: center;">
+    <a href="{{ url_for('login') }}">Login</a>
+  </div>
 {% endif %}
 
 {% endblock %}

@@ -3,12 +3,12 @@ from sqlalchemy.orm import relationship
 from db import db
 from datetime import datetime
 
-# Define the User model (combines User and Customer)
+# Define the User model
 class User(db.Model):
   __tablename__ = 'users'
 
   id = db.Column(db.Integer, primary_key=True)
-  username = db.Column(db.String(64), unique=True, nullable=False)
+  name = db.Column(db.String(100), nullable=False) 
   email = db.Column(db.String(120), unique=True, nullable=False)
   password = db.Column(db.String(128), nullable=False)
   address = db.Column(db.String(255), nullable=True)
@@ -16,18 +16,14 @@ class User(db.Model):
 
   @property
   def is_active(self):
-    # Assuming a user is active if they have a username
-    return bool(self.username)
-
+    return bool(self.name)
   @property
   def is_authenticated(self):
-    # Assuming a user is authenticated if they have a password
     return bool(self.password)
 
   @property
   def is_anonymous(self):
-    # Assuming a user is not anonymous if they have a username
-    return not bool(self.username)
+    return not bool(self.name) 
 
   def get_id(self):
     return str(self.id)
@@ -35,21 +31,20 @@ class User(db.Model):
   def to_json(self):
     return {
       "id": self.id,
-      "username": self.username,
+      "name": self.name,  
       "password": "********", 
       "email": self.email,
       "address": self.address,
       "phone": self.phone,
     }
 
-  orders = relationship('Order', backref='user')  # User can have many Orders
+  orders = relationship('Order', backref='user')
 
-# Define the Drug model (remains unchanged)
+# Define the Drug model
 class Drug(db.Model):
   id = db.Column(Integer, primary_key=True)
   name = db.Column(String(200), nullable=False, unique=True)
   price = db.Column(db.Numeric(10, 2), nullable=False)
-  stock = db.Column(Integer, nullable=False, default=0)  # Assuming a field for available quantity
   items = relationship('DrugOrder', back_populates='drug')
 
   def to_json(self):
@@ -60,10 +55,10 @@ class Drug(db.Model):
       "stock": self.stock,
     }
 
-# Define the Order model (using user_id for relationship)
+# Define the Order model
 class Order(db.Model):
   id = db.Column(Integer, primary_key=True)
-  user_id = db.Column(db.Integer, ForeignKey('users.id'))  # Foreign key to User
+  user_id = db.Column(db.Integer, ForeignKey('users.id')) 
   items = relationship('DrugOrder', back_populates='order')
 
   def to_json(self):
@@ -73,7 +68,7 @@ class Order(db.Model):
       "total": sum([item.drug.price * item.quantity for item in self.items]),
     }
 
-# Define the DrugOrder model (remains unchanged)
+# Define the DrugOrder model
 class DrugOrder(db.Model):
   id = db.Column(Integer, primary_key=True)
   order_id = db.Column(Integer, ForeignKey('order.id'), nullable=False)

@@ -29,10 +29,12 @@ def import_data():
         name = row["name"]
         phone = row["phone"]
         hashed_password = scrypt.encrypt("123123123")
-        user = User(username=name, email=f"{name}@example.com", password=hashed_password, phone=phone)
+        first_name, last_name = name.split()
+        email = f"{first_name[0]}{last_name}@example.com"
+        user = User(name=name, email=email, password=hashed_password, phone=phone)
         db.session.add(user)
 
-    # Import drugs (assuming similar structure for drugs.csv)
+    # Import drugs
     with open('./data/drugs.csv', 'r') as f:
       reader = csv.DictReader(f)
       next(reader)
@@ -48,13 +50,11 @@ def import_data():
     db.session.commit()
 
 # Create a specified number of random orders
-def create_random_orders(num_users):
+def create_random_orders():
   with app.app_context():
-    for _ in range(num_users):
-      user_stmt = db.select(User).order_by(func.random()).limit(1)
-      user = db.session.execute(user_stmt).scalar()
+    users = User.query.all() 
+    for user in users:
 
-      # Generate random number of orders between 2 and 5
       num_orders = random.randint(2, 5)
       for _ in range(num_orders):
         order = Order(user=user)
@@ -62,7 +62,7 @@ def create_random_orders(num_users):
 
         drug_stmt = db.select(Drug).order_by(func.random()).limit(1)
         drug = db.session.execute(drug_stmt).scalar()
-        rand_qty = random.randint(10, 20)
+        rand_qty = random.randint(50, 200)
 
         association = DrugOrder(order=order, drug=drug, quantity=rand_qty)
         db.session.add(association)
@@ -73,4 +73,4 @@ if __name__ == "__main__":
     drop_tables()
     create_tables()
     import_data()
-    create_random_orders(10)
+    create_random_orders()

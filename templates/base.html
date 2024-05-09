@@ -38,7 +38,7 @@
             <a href="{{ url_for('history') }}">Prescription History</a>
             <a href="{{ url_for('orders') }}">Orders</a>
             <div class="right-align">
-                <span>Welcome <a href="{{ url_for('userdetails') }}">{{ current_user.username }}</a></span> |
+                <span>Welcome<a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
                 <a href="{{ url_for('support') }}">Support</a> |
                 <a href="{{ url_for('logout') }}">Logout</a>
             </div>
@@ -59,6 +59,16 @@
             <h1>Drugs2Door!</h1>
         </div>
     {% endif %}
+    <br>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" style="text-align: center; width: 50%; margin: 0 auto;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
     {% block content %}{% endblock %}
 </body>
 </html>
