@@ -5,6 +5,7 @@ import csv
 import random
 from sqlalchemy.sql import func
 from passlib.hash import scrypt
+from datetime import datetime, timedelta
 
 # Drop all tables in the database
 def drop_tables():
@@ -49,6 +50,9 @@ def import_data():
 
     db.session.commit()
 
+from datetime import datetime, timedelta
+import random
+
 # Create a specified number of random orders
 def create_random_orders():
   with app.app_context():
@@ -64,7 +68,14 @@ def create_random_orders():
         drug = db.session.execute(drug_stmt).scalar()
         rand_qty = random.randint(50, 200)
 
-        association = DrugOrder(order=order, drug=drug, quantity=rand_qty)
+        # Generate random dates for date_ordered and date_delivered
+        date_ordered = datetime.now() - timedelta(days=random.randint(1, 60))
+        date_delivered = date_ordered + timedelta(days=random.randint(1, 30)) if random.choice([True, False]) else None
+
+        # Randomly decide if prescription is approved
+        prescription_approved = random.choice([True, False])
+
+        association = DrugOrder(order=order, drug=drug, quantity=rand_qty, date_ordered=date_ordered, date_delivered=date_delivered, prescription_approved=prescription_approved)
         db.session.add(association)
 
       db.session.commit()

@@ -69,7 +69,7 @@ def history():
 # Orders route
 @app.route('/orders')
 def orders():
-    orders = Order.query.all()
+    orders = Order.query.filter_by(user_id=current_user.id).join(DrugOrder).order_by(DrugOrder.date_ordered.desc()).all()
     return render_template('orders.html', orders=orders)
 
 # Support route
