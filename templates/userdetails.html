@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  .form-group {
+    margin-bottom: 1.5rem;
+  }
+  label {
+    font-weight: bold;
+  }
+  .form-control {
+    width: 100%;
+    padding: .375rem .75rem;
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+  }
+  .btn-primary {
+    color: #fff;
+    background-color: #007bff;
+    border-color: #007bff;
+    padding: .375rem .75rem;
+    cursor: pointer;
+  }
+</style>
+
+<div class="container py-5">
+  <h1 class="text-center mb-4">Edit User Details</h1>
+
+  <form method="POST">
+    {{ form.hidden_tag() }}
+
+    <div class="form-group">
+      <label for="name">Name: (Cannot be Changed)</label>
+      {{ form.name(class="form-control") }}
+      {% if form.name.errors %}
+        <div class="invalid-feedback">{{ form.name.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+        <label for="name">Email: (Cannot be Changed)</label>
+        {{ form.email(class="form-control") }}
+        {% if form.email.errors %}
+          <div class="invalid-feedback">{{ form.email.errors }}</div>
+        {% endif %}
+      </div>
+
+    <div class="form-group">
+      <label for="address">Address:</label>
+      {{ form.address(class="form-control") }}
+      {% if form.address.errors %}
+        <div class="invalid-feedback">{{ form.address.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="phone">Phone Number:</label>
+      {{ form.phone(class="form-control") }}
+      {% if form.phone.errors %}
+        <div class="invalid-feedback">{{ form.phone.errors }}</div>
+      {% endif %}
+    </div>
+
+    <div class="form-group">
+      <label for="password">Current Password:</label>
+      <input type="password" name="current_password" class="form-control" required>
+      <small class="form-text text-muted">Required to confirm changes.</small>
+    </div>
+
+    <div class="form-group">
+      <label for="new_password">New Password (optional):</label>
+      <input type="password" name="new_password" class="form-control">
+      <small class="form-text text-muted">Leave blank to keep current password.</small>
+    </div>
+
+    <div class="form-group">
+      <label for="confirm_password">Confirm New Password (optional):</label>
+      <input type="password" name="confirm_password" class="form-control">
+      <small class="form-text text-muted">Must match new password if provided.</small>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block">Save Changes</button>
+  </form>
+</div>
+{% endblock %}
