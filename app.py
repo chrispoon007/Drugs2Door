@@ -27,7 +27,7 @@ app.config["SECRET_KEY"] = '12345678901'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Registration forma
+# Registration form
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
