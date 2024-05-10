@@ -74,6 +74,9 @@ class DrugOrder(db.Model):
   order_id = db.Column(Integer, ForeignKey('order.id'), nullable=False)
   drug_id = db.Column(Integer, ForeignKey('drug.id'), nullable=False)
   quantity = db.Column(Integer, nullable=False)
+  date_ordered = db.Column(DateTime, nullable=False)
+  date_delivered = db.Column(DateTime)
+  prescription_approved = db.Column(Boolean, default=False)
   drug = relationship('Drug', back_populates='items')
   order = relationship('Order', back_populates='items')
 
@@ -83,4 +86,7 @@ class DrugOrder(db.Model):
       "order_id": self.order_id,
       "drug_id": self.drug_id,
       "quantity": self.quantity,
+      "date_ordered": self.date_ordered,
+      "date_delivered": self.date_delivered,
+      "prescription_approved": self.prescription_approved,
     }

@@ -27,7 +27,7 @@ app.config["SECRET_KEY"] = '12345678901'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# Registration form
+# Registration forma
 @app.route("/register", methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
@@ -69,7 +69,7 @@ def history():
 # Orders route
 @app.route('/orders')
 def orders():
-    orders = Order.query.all()
+    orders = Order.query.filter_by(user_id=current_user.id).join(DrugOrder).order_by(DrugOrder.date_ordered.desc()).all()
     return render_template('orders.html', orders=orders)
 
 # Support route
