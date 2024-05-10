@@ -210,4 +210,4 @@ def drug_detail_json(drug_id):
 
 # Run the application
 if __name__ == "__main__":
-    app.run(debug=True, port=8888)
+    app.run(debug=True, port=443)
