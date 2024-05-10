@@ -122,7 +122,12 @@ def userdetails():
     if form.validate_on_submit():
         if scrypt.verify(form.current_password.data, current_user.password):
             current_user.address = form.address.data
-            current_user.phone = form.phone.data
+
+            # Format phone number with dashes
+            phone = form.phone.data
+            phone = phone.replace("-", "")  # remove any existing dashes
+            phone = "{}-{}-{}".format(phone[:3], phone[3:6], phone[6:])  # insert dashes
+            current_user.phone = phone
 
             if form.new_password.data:
                 current_user.password = scrypt.encrypt(form.new_password.data)
@@ -138,7 +143,6 @@ def userdetails():
         form.address.data = current_user.address
         form.phone.data = current_user.phone
         form.email.data = current_user.email
-        
 
     return render_template('userdetails.html', title='User Details', form=form)
 
