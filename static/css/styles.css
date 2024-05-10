@@ -1,4 +1,5 @@
-body {
+/*Previous Code
+/* body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
@@ -91,4 +92,87 @@ th {
 
 th {
     text-align: center;
+}
+ */
+
+/* New design */
+
+ * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    font-family: 'Arial', sans-serif;
+}
+
+header {
+    background-color: #f4f4f4; /* Adjust color to match your design */
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo img {
+    height: 60px; /* Adjust based on your logo */
+}
+
+nav a {
+    text-decoration: none;
+    color: #333; /* Adjust color to match your design */
+    margin-left: 20px;
+}
+
+.hero {
+    background: #ffffff; /* Adjust background to match your design */
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.hero h1 {
+    color: #333; /* Adjust the color to match your design */
+    margin-bottom: 20px;
+}
+
+.hero p {
+    color: #666; /* Adjust the color to match your design */
+    margin-bottom: 30px;
+}
+
+.hero-buttons a {
+    background-color: #0056b3; /* Button color */
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    display: inline-block;
+    margin: 0 10px;
+}
+
+.services {
+    padding: 20px;
+    background: #f9f9f9; /* Background color for services section */
+}
+
+.service {
+    margin-bottom: 20px;
+}
+
+.service h3 {
+    color: #333; /* Title color */
+}
+
+.service p {
+    color: #666; /* Text color */
+}
+
+footer {
+    background-color: #333; /* Footer background color */
+    color: white;
+    text-align: center;
+    padding: 20px 10px;
 }
