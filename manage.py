@@ -41,7 +41,7 @@ def import_data():
       next(reader)
       for row in reader:
         if row["price"] == '':
-          continue  # Skip rows with empty price
+          continue  
         name = row["name"]
         price = float(row["price"])
         available = int(30)
