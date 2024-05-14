@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/css/styles.css">
+    <title>Upload Prescription</title>
+</head>
+<body>
+    <div class="prescription-container">
+        <form action="/submit_prescription" method="post" enctype="multipart/form-data" class="prescription-form">
+            <h2>Upload Your Prescription</h2>
+            <label for="prescription">Prescription File:</label>
+            <input type="file" id="prescription" name="prescription" required>
+            <button type="submit">Upload</button>
+            <a href="index.html" class="button back-button">Back to Homepage</a>
+        </form>
+    </div>    
+</body>
+</html>
