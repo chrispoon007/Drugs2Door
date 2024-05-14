@@ -10,7 +10,6 @@ from wtforms.validators import DataRequired, Email, EqualTo
 from passlib.hash import scrypt 
 from forms import RegistrationForm, LoginForm, UserUpdateForm
 from flask_login import login_manager, login_required, current_user, login_user, LoginManager, logout_user
-from werkzeug.security import generate_password_hash, check_password_hash
 
 # Initialize Flask application
 app = Flask(__name__)
