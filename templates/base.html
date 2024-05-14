@@ -6,29 +6,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="../static/css/styles.css">
 </head>
-
+{% if request.endpoint != 'home' %}
+<style>
+    .logo {
+        height: 80px;
+        width: 80px;
+        margin-right: 10px;
+    }
+    
+    .logo {
+        height: 80px;
+        width: 80px;
+    }
+    .header {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    .right-align {
+        float: right;
+    }
+</style>
+{% endif %}
 <body>
     <nav>
-        <a href="index.html">Homepage</a>
-        <a href="{{ url_for('html.orders') }}">Upload Prescription</a>
-        <a href="{{ url_for('html.orders') }}">Prescription History</a>
-        <a href="{{ url_for('html.orders') }}">Track Order</a>
-        <a href="{{ url_for('html.orders') }}">Support</a>
-        <a href="{{ url_for('html.customers') }}">Register</a>
-        <a href="{{ url_for('html.products') }}">Login</a>
-        
+        <a href="{{ url_for('home') }}">Homepage</a>
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for('dashboard') }}">Dashboard</a>
+            <a href="{{ url_for('upload') }}">Upload Prescription</a>
+            <a href="{{ url_for('history') }}">Prescription History</a>
+            <a href="{{ url_for('orders') }}">Orders</a>
+            <div class="right-align">
+                <span>Welcome<a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
+                <a href="{{ url_for('support') }}">Support</a> |
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
+        {% else %}
+            <div class="right-align">
+                <a href="{{ url_for('register') }}">Register</a> |
+                <a href="{{ url_for('login') }}">Login</a>
+            </div>
+        {% endif %}
     </nav>
-    <a href="{{ url_for('html.home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Trader Chris Logo" class="logo"></a>   
-    
-    <h1> Welcome to Drugs2Door!</h1>
-    
-    {% if request.path == url_for('html.home') %}
-    <div class="buttons">
-        <a href="{{ url_for('html.customers') }}" class="big-button">Customers</a>
-        <a href="{{ url_for('html.products') }}" class="big-button">Products</a>
-        <a href="{{ url_for('html.orders') }}" class="big-button">Orders</a>
-    </div>
+    {% if request.endpoint == 'home' %}
+        <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Drugs2Door Logo" class="logo"></a> 
+        <h1> Welcome to Drugs2Door!</h1>
+        <h2> Your Dose Delivered, Stat!</h2>
+    {% else %}
+        <div class="header">
+            <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Drugs2Door Logo" class="logo"></a>   
+            <h1>Drugs2Door!</h1>
+        </div>
     {% endif %}
+    <br>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}" style="text-align: center; width: 50%; margin: 0 auto;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
     {% block content %}{% endblock %}
 </body>
 </html>

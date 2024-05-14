@@ -33,29 +33,17 @@
     }
 </style>
 
-<h2 style="text-align: center;">Register</h2>
+<h2 style="text-align: center;">Login</h2>
 <div class="form-container">
     <form method="POST">
         {{ form.hidden_tag() }}
-        <div class="form-field">
-            {{ form.name.label }}<br>
-            {{ form.name() }}
-        </div>
         <div class="form-field">
             {{ form.email.label }}<br>
             {{ form.email() }}
         </div>
         <div class="form-field">
-            {{ form.phn.label }}<br>
-            {{ form.phn() }}
-        </div>
-        <div class="form-field">
             {{ form.password.label }}<br>
             {{ form.password() }}
-        </div>
-        <div class="form-field">
-            {{ form.confirm_password.label }}<br>
-            {{ form.confirm_password() }}
         </div>
         <div class="form-field">
             {{ form.submit() }}

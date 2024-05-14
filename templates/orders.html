@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Orders/Refills</h2>
+
+{% if current_user.is_authenticated %}
+  {% if current_user.orders %}
+    <table style="width: 80%; table-layout: auto;">
+      <thead>
+        <tr>
+          <th>Order ID</th>
+          <th>Date Ordered</th>
+          <th>Drug Name</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Date Delivered</th>
+          <th>View Prescription</th>
+          <th>Track Order</th>  
+        </tr>
+      </thead>
+      <tbody>
+        {% for order in orders %}
+        {% for drug_order in order.items %}
+        <tr>
+            <td>{{ order.id }}</td>
+            <td>{{ drug_order.date_ordered.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+            <td>{{ drug_order.drug.name }}</td>
+            <td>&#36;{{ drug_order.drug.price }}</td>
+            <td>{{ drug_order.quantity }}</td>
+            <td>{{ drug_order.date_delivered.strftime('%Y-%m-%d %H:%M:%S') if drug_order.date_delivered else 'Not Delivered Yet' }}</td>
+            <td><a href="{{ url_for('history', order_id=order.id) }}">View</a></td>
+            <td>
+                {% if drug_order.date_delivered %}
+                Already Delivered
+                {% else %}
+                <a href="{{ url_for('history', order_id=order.id) }}">Track</a>
+                {% endif %}
+            </td> 
+        </tr>
+        {% endfor %}
+    {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No orders to show.</p>
+  {% endif %}
+{% else %}
+  <p>You need to be logged in to view your orders.</p>
+  <div style="text-align: center;">
+    <a href="{{ url_for('login') }}">Login</a>
+  </div>
+{% endif %}
+
+{% endblock %}
