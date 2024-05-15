@@ -41,8 +41,8 @@ class UploadForm(FlaskForm):
     submit = SubmitField('Upload')
 
 class SupportForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
-    company = StringField('Company', validators=[Optional()])
+    first_name = StringField('First Name', validators=[DataRequired()])
+    last_name = StringField('Last Name', validators=[DataRequired()])
     email = StringField('E-mail Address', validators=[DataRequired(), Email()])
     phone = StringField('Phone Number', validators=[Optional(), Regexp(r'^\d{1,10}$', message="Phone number should be digits and up to 10 digits only")])
     message = TextAreaField('Message', validators=[Optional()])

@@ -162,13 +162,13 @@ ul {
       <form id="contact-form" method="POST">
         {{ form.hidden_tag() }}
         <p>
-            {{ form.name.label }}<br>
-            {{ form.name(id='name', required=True) }}
+            {{ form.first_name.label }}<br>
+            {{ form.first_name(id='first_name', required=True) }}
         </p>
     
         <p>
-            {{ form.company.label }}<br>
-            {{ form.company(id='company') }}
+            {{ form.last_name.label }}<br>
+            {{ form.last_name(id='last_name', required=True) }}
         </p>
     
         <p>
