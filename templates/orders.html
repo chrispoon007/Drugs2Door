@@ -13,9 +13,12 @@
           <th>Drug Name</th>
           <th>Price</th>
           <th>Quantity</th>
+          <th>Approved?</th>
+          <th>Paid?</th>
           <th>Date Delivered</th>
           <th>View Prescription</th>
-          <th>Track Order</th>  
+          <th>Track Order</th>
+          <th>Refill(s)</th>  <!-- New column header -->
         </tr>
       </thead>
       <tbody>
@@ -27,15 +30,47 @@
             <td>{{ drug_order.drug.name }}</td>
             <td>&#36;{{ drug_order.drug.price }}</td>
             <td>{{ drug_order.quantity }}</td>
-            <td>{{ drug_order.date_delivered.strftime('%Y-%m-%d %H:%M:%S') if drug_order.date_delivered else 'Not Delivered Yet' }}</td>
-            <td><a href="{{ url_for('history', order_id=order.id) }}">View</a></td>
+            <td>{{ 'Yes' if drug_order.prescription_approved else 'No' }}</td>
             <td>
-                {% if drug_order.date_delivered %}
-                Already Delivered
+              {% if drug_order.prescription_approved %}
+                {% if drug_order.paid %}
+                  Paid via CC
                 {% else %}
-                <a href="{{ url_for('history', order_id=order.id) }}">Track</a>
+                  <button onclick="openPaymentForm({{ drug_order.id }})">Pay Now</button>
                 {% endif %}
-            </td> 
+              {% else %}
+                Not Approved Yet
+              {% endif %}
+            </td>
+            <td>{{ drug_order.date_delivered.strftime('%Y-%m-%d %H:%M:%S') if drug_order.date_delivered else ('Not Approved Yet' if not drug_order.prescription_approved else 'Not Delivered Yet') }}</td>
+            <td>
+              {% if drug_order.image_file %}
+                  <div style="text-align: center;">
+                      <img src="{{ url_for('uploaded_file', filename=drug_order.image_file) }}" alt="Prescription Image" style="width: 100px; height: auto; cursor: pointer;" onclick="showImage(this)">
+                  </div>
+              {% else %}
+                  No Image Found
+              {% endif %}
+            </td>
+            <td>
+              {% if drug_order.date_delivered %}
+              Already Delivered
+              {% elif drug_order.paid %}
+              <a href="{{ url_for('track', order_id=order.id) }}">Track</a>
+              {% elif not drug_order.paid %}
+              Not Paid Yet
+              {% else %}
+              Not Delivered Yet
+              {% endif %}
+            </td>
+            <td>
+                {% if drug_order.paid and drug_order.refills > 0 %}
+                    {{ drug_order.refills }}
+                    <button onclick="openModal({{ drug_order.id }})">Request Refill</button>
+                {% else %}
+                    No Refills Available
+                {% endif %}
+            </td>
         </tr>
         {% endfor %}
     {% endfor %}
@@ -50,5 +85,178 @@
     <a href="{{ url_for('login') }}">Login</a>
   </div>
 {% endif %}
+
+<!-- Payment form -->
+<div id="paymentForm" class="modal" tabindex="-1" role="dialog" style="display: none;">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Enter Credit Card Details for Payment</h5>
+        <button type="button" class="close" onclick="document.getElementById('paymentForm').style.display='none'">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label for="cardNumber">Card Number:</label>
+            <input type="text" class="form-control" id="cardNumber" name="cardNumber" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" maxlength="16">
+          </div>
+          <div class="form-group">
+            <label for="expiryDate">Expiry Date:</label>
+            <input type="text" class="form-control" id="expiryDate" name="expiryDate" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" maxlength="4">
+          </div>
+          <div class="form-group">
+            <label for="cvv">CVV:</label>
+            <input type="text" class="form-control" id="cvv" name="cvv" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" maxlength="3">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="payNow()">Pay</button>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('paymentForm').style.display='none'">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="refillModal" class="modal fade" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Enter Credit Card Details for Refill</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="refillForm">
+          <div class="form-group">
+            <label for="cardNumberRefill">Card Number:</label>
+            <input type="text" class="form-control" id="cardNumberRefill" name="cardNumberRefill" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" maxlength="16">
+          </div>
+          <div class="form-group">
+            <label for="expiryDateRefill">Expiry Date:</label>
+            <input type="text" class="form-control" id="expiryDateRefill" name="expiryDateRefill" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" maxlength="4">
+          </div>
+          <div class="form-group">
+            <label for="cvvRefill">CVV:</label>
+            <input type="text" class="form-control" id="cvvRefill" name="cvvRefill" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" maxlength="3">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="requestRefill()">Request Refill</button>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showImage(img) {
+      var src = img.src;
+      var largeImage = document.createElement('img');
+      largeImage.src = src;
+      largeImage.style.display = 'block';
+      largeImage.style.width = '500px'; // or the width you want
+      largeImage.style.height = 'auto';
+  
+      var overlay = document.createElement('div');
+      overlay.style.display = 'flex';
+      overlay.style.justifyContent = 'center';
+      overlay.style.alignItems = 'center';
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.bottom = '0';
+      overlay.style.left = '0';
+      overlay.style.right = '0';
+      overlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+      overlay.onclick = function() {
+          document.body.removeChild(overlay);
+      }
+  
+      overlay.appendChild(largeImage);
+      document.body.appendChild(overlay);
+  }
+
+  function openPaymentForm(orderId) {
+    document.getElementById('paymentForm').style.display = 'block';
+    window.orderId = orderId;  // Save orderId for later use
+  }
+
+  function openModal(orderId) {
+    // Save orderId for later use
+    window.orderId = orderId;
+
+    // Open the modal
+    $('#refillModal').modal('show');
+}
+
+  function payNow() {
+    // Validate credit card details here...
+
+    // Send AJAX request to server to update drug_order.paid
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/pay", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        var json = JSON.parse(xhr.responseText);
+        if (json.success) {
+          alert('Payment successful!');
+          document.getElementById('paymentForm').style.display = 'none';
+          location.reload();  // Reload page to update "Paid?" column
+        } else {
+          alert('Payment failed: ' + json.error);
+        }
+      }
+    };
+    var data = JSON.stringify({"orderId": window.orderId});
+    xhr.send(data);
+  }
+var modal = document.getElementById("paymentModal");
+var span = document.getElementsByClassName("close")[0];
+var form = document.getElementById("paymentForm");
+var orderId;
+
+
+span.onclick = function() {
+    modal.style.display = "none";
+}
+
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+form.onsubmit = function(event) {
+    event.preventDefault();
+    var cardNumber = document.getElementById("cardNumber").value;
+    if (cardNumber) {
+        requestRefill();  // Removed orderId
+    }
+}
+
+function requestRefill() {  // Removed orderId
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/payrefill", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            if (json.success) {
+                alert('Payment successful!');
+                location.reload();  // Reload page to update "Refill(s)" column
+            } else {
+                alert('Payment failed: ' + json.error);
+            }
+        }
+    };
+    var data = JSON.stringify({"orderId": window.orderId});  // Use window.orderId
+    xhr.send(data);
+}
+</script>
 
 {% endblock %}

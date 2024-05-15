@@ -3,6 +3,15 @@ from sqlalchemy.orm import relationship
 from db import db
 from datetime import datetime
 
+# Define the Role model
+class Role(db.Model):
+    __tablename__ = 'roles'
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), unique=True)
+
+    users = relationship('User', backref='role')
+
 # Define the User model
 class User(db.Model):
   __tablename__ = 'users'
@@ -13,6 +22,9 @@ class User(db.Model):
   password = db.Column(db.String(128), nullable=False)
   address = db.Column(db.String(255), nullable=True)
   phone = db.Column(db.String(20))
+  phn = db.Column(db.String(120), unique=True, nullable=False)
+  role_id = db.Column(db.Integer, db.ForeignKey('roles.id')) 
+
 
   @property
   def is_active(self):
@@ -37,6 +49,9 @@ class User(db.Model):
       "address": self.address,
       "phone": self.phone,
     }
+  
+  def has_role(self, role_name):
+        return self.role.name == role_name
 
   orders = relationship('Order', backref='user')
 
@@ -68,17 +83,19 @@ class Order(db.Model):
       "total": sum([item.drug.price * item.quantity for item in self.items]),
     }
 
-# Define the DrugOrder model
 class DrugOrder(db.Model):
   id = db.Column(Integer, primary_key=True)
   order_id = db.Column(Integer, ForeignKey('order.id'), nullable=False)
-  drug_id = db.Column(Integer, ForeignKey('drug.id'), nullable=False)
-  quantity = db.Column(Integer, nullable=False)
+  drug_id = db.Column(Integer, ForeignKey('drug.id'))
+  quantity = db.Column(Integer)
   date_ordered = db.Column(DateTime, nullable=False)
   date_delivered = db.Column(DateTime)
   prescription_approved = db.Column(Boolean, default=False)
+  refills = db.Column(db.Integer, default=0)
   drug = relationship('Drug', back_populates='items')
   order = relationship('Order', back_populates='items')
+  image_file = db.Column(db.String(120), nullable=True)
+  paid = db.Column(Boolean, default=False, nullable=False)
 
   def to_json(self):
     return {
@@ -89,4 +106,6 @@ class DrugOrder(db.Model):
       "date_ordered": self.date_ordered,
       "date_delivered": self.date_delivered,
       "prescription_approved": self.prescription_approved,
+      "refills": self.refills,
+      "image_file": self.image_file,
     }

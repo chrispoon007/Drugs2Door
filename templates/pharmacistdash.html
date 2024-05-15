@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Unapproved Prescriptions -->
+<h2>Unapproved Prescriptions</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">PHN</th>
+            <th scope="col">Drug</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Date Ordered</th>
+            <th scope="col">Prescription</th>
+            <th scope="col">Status</th>
+            <th scope="col">Review Order</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in unapproved_prescriptions %}
+            {% for item in order.items %}
+                {% if not item.prescription_approved %}
+                    <tr>
+                        <th scope="row">{{ order.id }}</th>
+                        <td>{{ order.user.name }}</td>
+                        <td>{{ order.user.email }}</td>
+                        <td>{{ order.user.phn }}</td>
+                        <td>{{ item.drug.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.date_ordered }}</td>
+                        <td>
+                            {% if item.image_file %}
+                            <div style="text-align: center;">
+                                <img src="{{ url_for('uploaded_file', filename=item.image_file) }}" alt="Prescription Image" style="width: 100px; height: auto; cursor: pointer;" onclick="showImage(this)">
+                            </div>
+                        {% else %}
+                            No Image Found
+                        {% endif %}
+                        </td>
+                        <td>Unapproved</td>
+                        <td><a href="{{ url_for('review_order', order_id=order.id) }}">Review</a></td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>
+
+<!-- Approved Orders -->
+<h2>Approved Orders</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">PHN</th>
+            <th scope="col">Drug</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Refills Remaining</th>
+            <th scope="col">Date Ordered</th>
+            <th scope="col">Prescription</th>
+            <th scope="col">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in approved_orders %}
+            {% for item in order.items %}
+                {% if item.prescription_approved %}
+                    <tr>
+                        <th scope="row">{{ order.id }}</th>
+                        <td>{{ order.user.name }}</td>
+                        <td>{{ order.user.email }}</td>
+                        <td>{{ order.user.phn }}</td>
+                        <td>{{ item.drug.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.refills }}</td> <!-- Add this line to display the number of refills -->
+                        <td>{{ item.date_ordered }}</td>
+                        <td>
+                            {% if item.image_file %}
+                            <div style="text-align: center;">
+                                <img src="{{ url_for('uploaded_file', filename=item.image_file) }}" alt="Prescription Image" style="width: 100px; height: auto; cursor: pointer;" onclick="showImage(this)">
+                            </div>
+                            {% else %}
+                                No Image Found
+                            {% endif %}
+                        </td>
+                        <td>Approved</td>
+                    </tr>
+                {% endif %}
+            {% endfor %}
+        {% endfor %}
+    </tbody>
+</table>
+<script>
+    function showImage(img) {
+        var src = img.src;
+        var largeImage = document.createElement('img');
+        largeImage.src = src;
+        largeImage.style.display = 'block';
+        largeImage.style.width = '500px'; // or the width you want
+        largeImage.style.height = 'auto';
+    
+        var overlay = document.createElement('div');
+        overlay.style.display = 'flex';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.bottom = '0';
+        overlay.style.left = '0';
+        overlay.style.right = '0';
+        overlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        overlay.onclick = function() {
+            document.body.removeChild(overlay);
+        }
+    
+        overlay.appendChild(largeImage);
+        document.body.appendChild(overlay);
+    }
+</script>
+{% endblock %}
