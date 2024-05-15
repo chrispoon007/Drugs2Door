@@ -86,8 +86,13 @@ def create_random_orders():
         date_delivered = date_ordered + timedelta(days=random.randint(1, 30)) if random.choice([True, False]) else None
 
         # If the order has been delivered, then the prescription must be approved and the order must be paid
-        prescription_approved = True if date_delivered else random.choice([True, False])
-        paid = True if date_delivered else False
+        prescription_approved = None
+        if date_delivered:
+            prescription_approved = True
+            paid = True
+        else:
+            prescription_approved = random.choice([True, False, None])
+            paid = False if prescription_approved is None else random.choice([True, False])
 
         association = DrugOrder(order=order, drug=drug, quantity=rand_qty, date_ordered=date_ordered, date_delivered=date_delivered, prescription_approved=prescription_approved, paid=paid)
         db.session.add(association)

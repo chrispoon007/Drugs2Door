@@ -50,6 +50,10 @@ def register():
                 db.session.commit()
                 flash('Your account has been created! You can now log in.', 'success')
                 return redirect(url_for('login'))
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f"Error in {getattr(form, field).label.text}: {error}", 'danger')
     return render_template('register.html', title='Register', form=form)
 
 
@@ -85,7 +89,7 @@ def upload():
         db.session.commit()
 
         # Now create a new DrugOrder linked to the order
-        drug_order = DrugOrder(order_id=order.id, image_file=filename, prescription_approved=0, date_ordered=datetime.utcnow())
+        drug_order = DrugOrder(order_id=order.id, image_file=filename, prescription_approved=None, date_ordered=datetime.utcnow())  # prescription_approved is set to None
 
         # Save the DrugOrder to the database
         db.session.add(drug_order)
@@ -128,21 +132,25 @@ def review_order(order_id):
     # Check if the form is submitted
     if request.method == 'POST':
         # Update the order status based on the form data
-        order.prescription_approved = (request.form.get('status') == 'approved')
+        status = request.form.get('status')
+        if status == 'approved':
+            order.prescription_approved = True
 
-        # Update the drug and quantity based on the form data
-        drug_name = request.form.get('drug_name')
-        quantity = request.form.get('quantity')
-        refills = request.form.get('refills')  # Get the refill count from the form data
+            # Update the drug and quantity based on the form data
+            drug_name = request.form.get('drug_name')
+            quantity = request.form.get('quantity')
+            refills = request.form.get('refills')  # Get the refill count from the form data
 
-        # Find the drug by name
-        drug = Drug.query.filter_by(name=drug_name).first()
+            # Find the drug by name
+            drug = Drug.query.filter_by(name=drug_name).first()
 
-        # If the drug exists, update the drug and quantity
-        if drug is not None:
-            order.drug = drug
-            order.quantity = quantity
-            order.refills = refills  # Update the refill count
+            # If the drug exists, update the drug and quantity
+            if drug is not None:
+                order.drug = drug
+                order.quantity = quantity
+                order.refills = refills  # Update the refill count
+        elif status == 'denied':
+            order.prescription_approved = False
 
         db.session.commit()
         return redirect(url_for('pharmacistdash'))
