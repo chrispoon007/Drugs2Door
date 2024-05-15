@@ -90,7 +90,7 @@ class DrugOrder(db.Model):
   quantity = db.Column(Integer)
   date_ordered = db.Column(DateTime, nullable=False)
   date_delivered = db.Column(DateTime)
-  prescription_approved = db.Column(Boolean, default=False)
+  prescription_approved = db.Column(Boolean)  # NULL: not approved yet, True: approved, False: denied
   refills = db.Column(db.Integer, default=0)
   drug = relationship('Drug', back_populates='items')
   order = relationship('Order', back_populates='items')

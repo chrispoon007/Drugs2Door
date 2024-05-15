@@ -4,11 +4,16 @@ from wtforms.validators import DataRequired, Optional, Email, EqualTo, Length, R
 from models import User
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 
+def password_complexity(form, field):
+    password = field.data
+    if len(password) < 6 or not any(char.isdigit() for char in password) or not any(char.isalpha() for char in password) or not any(not char.isalnum() for char in password):
+        raise ValidationError("Password must be at least 6 characters long, contain a number, a letter, and a symbol.")
+
 class RegistrationForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired(), Length(min=2, max=50)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     phn = StringField('PHN', validators=[DataRequired(), Length(min=10, max=10), Regexp('^[0-9]*$', message="PHN must contain only numbers")])
-    password = PasswordField('Password', validators=[DataRequired()])
+    password = PasswordField('Password', validators=[DataRequired(), password_complexity])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Sign Up')
 
@@ -34,3 +39,4 @@ class UploadForm(FlaskForm):
         FileAllowed(['jpg', 'png', 'bmp', 'pdf'], 'Images and PDFs only!')
     ])
     submit = SubmitField('Upload')
+
