@@ -8,7 +8,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo
 from flask_bcrypt import Bcrypt
-from forms import RegistrationForm, LoginForm, UserUpdateForm, UploadForm
+from forms import RegistrationForm, LoginForm, UserUpdateForm, UploadForm, SupportForm
 from flask_login import login_manager, login_required, current_user, login_user, LoginManager, logout_user
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -218,11 +218,16 @@ def payrefill():
 # Support route
 @app.route("/support", methods=["GET", "POST"])
 def support():
-    if request.method == "POST":
+    form = SupportForm()
+    if form.validate_on_submit():
         # Logic to handle support queries
-        # This could involve sending an email or storing the query in a database
-        pass
-    return render_template("support.html")
+        flash('Your message has been sent successfully!', 'success')
+        return redirect(url_for('support'))
+    elif request.method == 'POST':
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"Error in the {getattr(form, field).label.text} field - {error}", 'error')
+    return render_template("support.html", form=form)
 
 # Login route
 @app.route("/login", methods=['GET', 'POST'])
