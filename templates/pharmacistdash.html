@@ -4,7 +4,7 @@
 
 <!-- Unapproved Prescriptions -->
 <h2>Unapproved Prescriptions</h2>
-<table class="table">
+<table class="table" id="unapprovedTable">
     <thead>
         <tr>
             <th scope="col">#</th>
@@ -48,10 +48,27 @@
         {% endfor %}
     </tbody>
 </table>
+<div aria-label="Page navigation for unapproved prescriptions">
+    <ul class="pagination justify-content-center">
+      {% if page_unapproved > 1 %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('pharmacistdash', page_unapproved=page_unapproved-1, page_approved=page_approved) }}">Previous</a>
+        </li>
+      {% endif %}
+      <li class="page-item disabled">
+        <span class="page-link">Page {{ page_unapproved }}</span>
+      </li>
+      {% if unapproved_prescriptions|length >= 10 %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('pharmacistdash', page_unapproved=page_unapproved+1, page_approved=page_approved) }}">Next</a>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
 
 <!-- Approved Orders -->
 <h2>Approved Orders</h2>
-<table class="table">
+<table class="table" id="approvedTable">
     <thead>
         <tr>
             <th scope="col">#</th>
@@ -95,6 +112,62 @@
         {% endfor %}
     </tbody>
 </table>
+
+<div aria-label="Page navigation for approved orders">
+    <ul class="pagination justify-content-center">
+      {% if page_approved > 1 %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('pharmacistdash', page_unapproved=page_unapproved, page_approved=page_approved-1) }}">Previous</a>
+        </li>
+      {% endif %}
+      <li class="page-item disabled">
+        <span class="page-link">Page {{ page_approved }}</span>
+      </li>
+      {% if approved_orders|length >= 10 %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('pharmacistdash', page_unapproved=page_unapproved, page_approved=page_approved+1) }}">Next</a>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
+
+<script>
+$(document).ready(function(){
+    attachPageLinkHandler();
+});
+
+function attachPageLinkHandler() {
+    $(".page-link").off('click').on('click', function(e){
+        e.preventDefault();
+        var pageLink = $(this).attr('href');
+        $.ajax({
+            url: pageLink,
+            type: 'GET',
+            success: function(response){
+                // Create a temporary div to hold the response
+                var tempDiv = document.createElement('div');
+                tempDiv.innerHTML = response;
+
+                // Extract the table data and pagination data
+                var unapprovedTableData = tempDiv.querySelector('#unapprovedTable').innerHTML;
+                var approvedTableData = tempDiv.querySelector('#approvedTable').innerHTML;
+                var unapprovedPaginationData = tempDiv.querySelector('[aria-label="Page navigation for unapproved prescriptions"]').innerHTML;
+                var approvedPaginationData = tempDiv.querySelector('[aria-label="Page navigation for approved orders"]').innerHTML;
+
+                // Replace the content of your tables and pagination with the extracted data
+                $('#unapprovedTable').html(unapprovedTableData);
+                $('#approvedTable').html(approvedTableData);
+                $('[aria-label="Page navigation for unapproved prescriptions"]').html(unapprovedPaginationData);
+                $('[aria-label="Page navigation for approved orders"]').html(approvedPaginationData);
+
+                // Reattach the event handler
+                attachPageLinkHandler();
+            }
+        });
+    });
+}
+</script>
+
 <script>
     function showImage(img) {
         var src = img.src;
@@ -122,4 +195,5 @@
         document.body.appendChild(overlay);
     }
 </script>
+
 {% endblock %}

@@ -4,6 +4,48 @@
 {% if current_user.is_authenticated %}
   <h2>Welcome, {{ current_user.name }}!</h2>
   <p>Your registered email is {{ current_user.email }}.</p>
+
+  {% set ns = namespace(unpaid_approved_count=0, unapproved_count=0, total_unapproved_count=0) %}
+  {% for drugorder in drugorders %}
+    {% if drugorder.prescription_approved and not drugorder.paid %}
+      {% set ns.unpaid_approved_count = ns.unpaid_approved_count + 1 %}
+    {% endif %}
+    {% if drugorder.prescription_approved is none %}
+      {% set ns.unapproved_count = ns.unapproved_count + 1 %}
+      {% set ns.total_unapproved_count = ns.total_unapproved_count + 1 %}
+    {% endif %}
+  {% endfor %}
+  
+  {% if current_user.role_id != 1 %}
+  <div style="border: 1px solid #ccc; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); width: auto; margin: 0 auto;">
+    {% if ns.unpaid_approved_count > 0 %}
+      <p>{{ ns.unpaid_approved_count }} Prescriptions Approved & Awaiting Payment - <a href="{{ url_for('orders') }}">Pay Now</a></p>
+    {% else %}
+      <p>No Unpaid Prescriptions - <a href="{{ url_for('orders') }}">View Orders</a></p>
+    {% endif %}
+  </div>
+  {% endif %}
+  
+  {% if current_user.role_id != 1 %}
+  <div style="border: 1px solid #ccc; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); width: auto; margin: 20px auto;">
+    {% if ns.unapproved_count > 0 %}
+      <p>{{ ns.unapproved_count }} Unapproved Prescriptions - <a href="{{ url_for('orders') }}">View Orders</a></p>
+    {% else %}
+      <p>No Unapproved Prescriptions - <a href="{{ url_for('orders') }}">View Orders</a></p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% if current_user.role_id == 1 %}
+    <div style="border: 1px solid #ccc; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); width: auto; margin: 20px auto;">
+      {% if ns.total_unapproved_count > 0 %}
+        <p>{{ ns.total_unapproved_count }} Unapproved Prescriptions From All Users - <a href="{{ url_for('pharmacistdash') }}">View Orders</a></p>
+      {% else %}
+        <p>No Unapproved Prescriptions in the System - <a href="{{ url_for('pharmacistdash') }}">View Orders</a></p>
+      {% endif %}
+    </div>
+  {% endif %}
+
 {% else %}
   <p style="text-align: center;">You need to be logged in to view your dashboard.</p>
   <div style="text-align: center;">

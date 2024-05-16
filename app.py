@@ -30,7 +30,6 @@ app.config["SECRET_KEY"] = '12345678901'
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-
 # Registration form
 @app.route("/register", methods=['GET', 'POST'])
 def register():
@@ -107,16 +106,19 @@ def uploaded_file(filename):
 @app.route('/pharmacistdash')
 @login_required
 def pharmacistdash():
+    page_unapproved = request.args.get('page_unapproved', 1, type=int)
+    page_approved = request.args.get('page_approved', 1, type=int)
+    per_page = 10
     if current_user.role_id != 1:
         flash('You do not have access to this page.', 'danger')
         return redirect(url_for('home'))
 
     # Fetch approved and unapproved orders from the database
-    approved_orders = db.session.query(Order).join(DrugOrder).filter(DrugOrder.prescription_approved == True).order_by(desc(DrugOrder.date_ordered)).all()
-    unapproved_prescriptions = db.session.query(Order).join(DrugOrder).filter(DrugOrder.prescription_approved == False).order_by(desc(DrugOrder.date_ordered)).all()
+    approved_orders = db.session.query(Order).join(DrugOrder).filter(DrugOrder.prescription_approved == True).order_by(DrugOrder.date_ordered.desc()).limit(per_page).offset((page_approved - 1) * per_page).all()
+    unapproved_prescriptions = db.session.query(Order).join(DrugOrder).filter(DrugOrder.prescription_approved == None).order_by(DrugOrder.date_ordered.desc()).limit(per_page).offset((page_unapproved - 1) * per_page).all()
 
     # Pass the sorted lists to the template
-    return render_template('pharmacistdash.html', unapproved_prescriptions=unapproved_prescriptions, approved_orders=approved_orders)
+    return render_template('pharmacistdash.html', unapproved_prescriptions=unapproved_prescriptions, approved_orders=approved_orders, page_unapproved=page_unapproved, page_approved=page_approved)
 
 @app.route('/review_order/<int:order_id>', methods=['GET', 'POST'])
 @login_required
@@ -257,11 +259,23 @@ def logout():
 @app.route("/dashboard")
 def dashboard():
     if current_user.is_authenticated:
-        return render_template('dashboard.html', title='Dashboard', name=current_user.name, email=current_user.email)
+        if current_user.role_id == 1:  # if the user is a pharmacist
+            drugorders = DrugOrder.query.filter(DrugOrder.prescription_approved == None).all()
+        else:  # for other users
+            orders = Order.query.filter_by(user_id=current_user.id).all()
+            drugorders = [drugorder for order in orders for drugorder in order.items]
+        return render_template('dashboard.html', title='Dashboard', name=current_user.name, email=current_user.email, drugorders=drugorders)
     else:
         return redirect(url_for('login'))
 
 # User details route
+def format_phone(phone):
+    if phone is None:
+        raise TypeError("Phone number cannot be None")
+    phone = phone.replace("-", "")  # remove any existing dashes
+    phone = "{}-{}-{}".format(phone[:3], phone[3:6], phone[6:])  # insert dashes
+    return phone
+
 @app.route('/userdetails', methods=['GET', 'POST'])
 @login_required
 def userdetails():
@@ -273,10 +287,7 @@ def userdetails():
             current_user.phn = form.phn.data  # update PHN
 
             # Format phone number with dashes
-            phone = form.phone.data
-            phone = phone.replace("-", "")  # remove any existing dashes
-            phone = "{}-{}-{}".format(phone[:3], phone[3:6], phone[6:])  # insert dashes
-            current_user.phone = phone
+            current_user.phone = format_phone(form.phone.data)
 
             if form.new_password.data:
                 current_user.password = bcrypt.generate_password_hash(form.new_password.data).decode('utf-8')
