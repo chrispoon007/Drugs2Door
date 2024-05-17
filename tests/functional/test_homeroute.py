@@ -1,6 +1,5 @@
-import unittest
 from flask import Flask
-from Drugs2Door.app import app
+from app import app
 
 # Check if the home path returns a 200 status code
 def test_home():

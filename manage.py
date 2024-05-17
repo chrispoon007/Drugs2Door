@@ -77,10 +77,6 @@ def create_random_orders():
         order = Order(user=user)
         db.session.add(order)
 
-        drug_stmt = db.select(Drug).order_by(func.random()).limit(1)
-        drug = db.session.execute(drug_stmt).scalar()
-        rand_qty = random.randint(50, 200)
-
         # Generate random dates for date_ordered and date_delivered
         date_ordered = datetime.now() - timedelta(days=random.randint(1, 60))
         date_delivered = date_ordered + timedelta(days=random.randint(1, 30)) if random.choice([True, False]) else None
@@ -91,13 +87,20 @@ def create_random_orders():
             prescription_approved = True
             paid = True
         else:
-            prescription_approved = random.choice([True, False, None])
-            paid = False if prescription_approved is None else random.choice([True, False])
+            prescription_approved = random.choice([True, None])
+            # Only mark as paid if the prescription is approved
+            paid = False if prescription_approved is not True else random.choice([True, False])
 
-        association = DrugOrder(order=order, drug=drug, quantity=rand_qty, date_ordered=date_ordered, date_delivered=date_delivered, prescription_approved=prescription_approved, paid=paid)
-        db.session.add(association)
+        num_drugs = random.randint(1, 3)  # select a random number of drugs
+        for _ in range(num_drugs):
+            drug_stmt = db.select(Drug).order_by(func.random()).limit(1)
+            drug = db.session.execute(drug_stmt).scalar()
+            rand_qty = random.randint(50, 200)
 
-      db.session.commit()
+            association = DrugOrder(order=order, drug=drug, quantity=rand_qty, date_ordered=date_ordered, date_delivered=date_delivered, prescription_approved=prescription_approved, paid=paid)
+            db.session.add(association)
+
+        db.session.commit()
 
 def create_pharmacist():
     with app.app_context():
