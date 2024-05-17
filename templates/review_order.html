@@ -6,57 +6,193 @@
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-md-6">
-        <form method="POST">
-          <p class="text-center">Order ID: {{ order.id }}</p>
-          <p class="text-center">User Name: {{ order.order.user.name }}</p>
-          <p class="text-center">User Email: {{ order.order.user.email }}</p>
-          <p class="text-center">Date Ordered: {{ order.date_ordered }}</p>
+        <form method="POST" id="OrderForm" action="{{ url_for('review_order', order_id=order.id) }}">
+            <p class="text-center">Order ID: {{ order.id }}</p>
+            <p class="text-center">User Name: {{ order.user.name }}</p>
+            <p class="text-center">User Email: {{ order.user.email }}</p>
+          {% if order.items %}
+  <p class="text-center">Date Ordered: {{ order.items[0].date_ordered.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+{% else %}
+  <p class="text-center">No items in this order.</p>
+{% endif %}
 
           <!-- Display the image -->
-          {% if order.image_file %}
-            <div class="form-group text-center">
-              <label>Prescription Image:</label>
-              <img src="{{ url_for('uploaded_file', filename=order.image_file) }}" alt="Prescription Image" style="width: 200px; height: auto; cursor: pointer;" onclick="showImage(this)">
-            </div>
+          {% if drug_order.image_file %}
+          <div class="form-group text-center">
+            <label>Prescription Image:</label>
+            <br>
+            <img src="{{ url_for('uploaded_file', filename=drug_order.image_file) }}" alt="Prescription Image" style="width: 200px; height: auto; cursor: pointer;" onclick="showImage(this)">
+          </div>
           {% endif %}
-          <div class="form-group">
-            <label for="drug_name">Drug Name:</label>
-            <select id="drug_name" name="drug_name" class="form-control">
-              {% for drug in drugs %}
-                <option value="{{ drug.name }}" {% if drug.name == order.drug.name %} selected {% endif %}>{{ drug.name }}</option>
-              {% endfor %}
-            </select>
+
+          <div id="drugsContainer">
+            {% for drug_order in drug_orders %}
+              {% if drug_order is not none %}
+                <div class="drug-group row">
+                  <div class="form-group col-md-6">
+                    <label for="drug_name">Drug Name:</label>
+                    <select name="drug_orders-{{ drug_order.id }}-name" class="form-control" required>
+                      {% for drug in drugs|sort(attribute='name') %}
+                        <option value="{{ drug.name }}" {% if drug.name == drug_order.drug.name %} selected {% endif %}>
+                          {{ drug.name }}
+                        </option>
+                      {% endfor %}
+                    </select>
+                  </div>
+              
+                  <div class="form-group col-md-3">
+                    <label for="quantity">Quantity:</label>
+                    <input type="number" name="drug_orders-{{ drug_order.id }}-quantity" value="{{ drug_order.quantity }}" min="0" class="form-control" required>
+                  </div>
+                  
+                  <div class="form-group col-md-3">
+                    <label for="refills">Refills:</label>
+                    <input type="number" name="drug_orders-{{ drug_order.id }}-refills" value="{{ drug_order.refills }}" min="0" class="form-control" required>
+                  </div>
+                </div>
+              {% endif %}
+            {% endfor %}
           </div>
 
-          <div class="form-group">
-            <label for="quantity">Quantity:</label>
-            <input id="quantity" name="quantity" type="number" value="{{ order.quantity }}" class="form-control">
-          </div>
-          <div class="form-group">
-            <label for="quantity">Refill(s):</label>
-            <input id="refills" name="refills" type="number" value="{{ order.refills }}" class="form-control">
-          </div>
+          <button type="button" id="addDrugButton" class="btn btn-secondary">+ Add another drug</button>
 
           <input type="hidden" name="order_id" value="{{ order.id }}">
 
           <div class="form-group">
             <label for="status">Status:</label>
-            <select id="status" name="status" class="form-control">
+            <select id="status" name="status" class="form-control" required>
               <option value="approved">Approve</option>
               <option value="denied">Deny</option>
             </select>
           </div>
-
           <div class="form-group text-center">
-            <input type="submit" value="Submit" class="btn btn-primary">
-          </div>
+          <button type="submit" class="btn btn-primary">Submit</button>
         </form>
       </div>
     </div>
   </div>
+</div> 
 
-  <script>
-  function showImage(img) {
+<style>
+    .flex-nowrap {
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+</style>
+
+<script>
+    var counter = 0;  // Start with 0 to match the index in the drug_orders list
+    
+    document.getElementById('addDrugButton').addEventListener('click', function() {
+        if (counter < 5) {
+            var drugsContainer = document.getElementById('drugsContainer');
+
+            // Fetch the list of drugs from the server
+            fetch('/api/drugs')  // Replace with your actual API endpoint
+                .then(response => response.json())
+                .then(drugs => {
+                    // Create new drug group
+                    var drugGroup = document.createElement('div');
+                    drugGroup.className = 'drug-group flex-nowrap';
+
+                    // Create fields container
+                    var fieldsContainer = document.createElement('div');
+                    fieldsContainer.className = 'd-flex flex-grow-1';
+
+                    // Create remove button
+                    var removeButton = document.createElement('button');
+                    removeButton.textContent = 'Remove';
+                    removeButton.className = 'btn btn-danger';
+                    removeButton.style.marginLeft = '15px';
+                    removeButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        drugsContainer.removeChild(drugGroup);
+                        counter--;
+                        if (counter < 5) {
+                            document.getElementById('addDrugButton').disabled = false;
+                        }
+                    });
+
+                    // Create drug name field
+                    var drugNameGroup = document.createElement('div');
+                    drugNameGroup.className = 'form-group col-md-6';
+                    var drugNameLabel = document.createElement('label');
+                    drugNameLabel.htmlFor = 'drug_orders-' + counter + '-name';
+                    drugNameLabel.textContent = 'Drug Name:';
+                    var drugNameSelect = document.createElement('select');
+                    drugNameSelect.name = 'drug_orders-' + counter + '-name';  // Changed id to name
+                    drugNameSelect.className = 'form-control';
+                    drugNameSelect.required = true;  // Add required attribute
+                    
+                    // Add options to the select element
+                    for (var i = 0; i < drugs.length; i++) {
+                        var option = document.createElement('option');
+                        option.value = drugs[i].id;
+                        option.text = drugs[i].name;
+                        drugNameSelect.appendChild(option);
+                    }
+                    
+                    drugNameGroup.appendChild(drugNameLabel);
+                    drugNameGroup.appendChild(drugNameSelect);
+                
+                    // Create quantity field
+                    var quantityGroup = document.createElement('div');
+                    quantityGroup.className = 'form-group col-md-3';
+                    var quantityLabel = document.createElement('label');
+                    quantityLabel.htmlFor = 'drug_orders-' + counter + '-quantity';
+                    quantityLabel.textContent = 'Quantity:';
+                    var quantityInput = document.createElement('input');
+                    quantityInput.name = 'drug_orders-' + counter + '-quantity';  // Changed id to name
+                    quantityInput.type = 'number';  // Set the type to number
+                    quantityInput.min = '0';  // Set the minimum value to 0
+                    quantityInput.className = 'form-control';
+                    quantityInput.required = true;  // Add required attribute
+                    quantityGroup.appendChild(quantityLabel);
+                    quantityGroup.appendChild(quantityInput);
+
+                    // Create refill field
+                    var refillGroup = document.createElement('div');
+                    refillGroup.className = 'form-group col-md-3';
+                    var refillLabel = document.createElement('label');
+                    refillLabel.htmlFor = 'drug_orders-' + counter + '-refills';
+                    refillLabel.textContent = 'Refill:';
+                    var refillInput = document.createElement('input');
+                    refillInput.name = 'drug_orders-' + counter + '-refills';  // Changed id to name
+                    refillInput.type = 'number';  // Set the type to number
+                    refillInput.min = '0';  // Set the minimum value to 0
+                    refillInput.className = 'form-control';
+                    refillInput.required = true;  // Add required attribute
+                    refillGroup.appendChild(refillLabel);
+                    refillGroup.appendChild(refillInput);
+        
+                    // Append all fields to the fields container
+                    fieldsContainer.appendChild(drugNameGroup);
+                    fieldsContainer.appendChild(quantityGroup);
+                    fieldsContainer.appendChild(refillGroup);
+
+                    // Append the fields container and the remove button to the drug group
+                    drugGroup.appendChild(fieldsContainer);
+                    drugGroup.appendChild(removeButton);
+
+                    // Append the new drug group to the drugs container
+                    drugsContainer.appendChild(drugGroup);
+
+                    // Increment the counter
+                    counter++;
+                    
+                    // If the counter has reached 5, disable the button
+                    if (counter === 5) {
+                        this.disabled = true;
+                    }
+                });
+        }
+    });
+</script>
+
+
+<script>
+    function showImage(img) {
       var src = img.src;
       var largeImage = document.createElement('img');
       largeImage.src = src;
@@ -80,6 +216,7 @@
 
       overlay.appendChild(largeImage);
       document.body.appendChild(overlay);
-  }
+    }
   </script>
+  
 {% endblock %}

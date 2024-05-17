@@ -3,16 +3,18 @@ from pathlib import Path
 from db import db
 from models import Drug, Order, DrugOrder, User
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, distinct
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo
 from flask_bcrypt import Bcrypt
-from forms import RegistrationForm, LoginForm, UserUpdateForm, UploadForm
+from flask_sqlalchemy import SQLAlchemy
+from forms import RegistrationForm, LoginForm, UserUpdateForm, UploadForm, SupportForm
 from flask_login import login_manager, login_required, current_user, login_user, LoginManager, logout_user
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, timezone
 import os
+from collections import defaultdict
 
 # Initialize Flask application
 app = Flask(__name__)
@@ -50,6 +52,10 @@ def register():
                 db.session.commit()
                 flash('Your account has been created! You can now log in.', 'success')
                 return redirect(url_for('login'))
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    flash(f"Error in {getattr(form, field).label.text}: {error}", 'danger')
     return render_template('register.html', title='Register', form=form)
 
 
@@ -85,7 +91,7 @@ def upload():
         db.session.commit()
 
         # Now create a new DrugOrder linked to the order
-        drug_order = DrugOrder(order_id=order.id, image_file=filename, prescription_approved=0, date_ordered=datetime.utcnow())
+        drug_order = DrugOrder(order_id=order.id, image_file=filename, prescription_approved=None, date_ordered=datetime.now(timezone.utc))  # prescription_approved is set to None
 
         # Save the DrugOrder to the database
         db.session.add(drug_order)
@@ -96,29 +102,41 @@ def upload():
 
     return render_template('upload.html', form=form, filename=filename)
 
-@app.route('/uploads/<filename>')
+@app.route('/upload/<filename>')
 def uploaded_file(filename):
     return send_from_directory(os.path.join(app.root_path, 'data', 'uploads'), filename)
+    
 
 @app.route('/pharmacistdash')
 @login_required
 def pharmacistdash():
+    page_unapproved = request.args.get('page_unapproved', 1, type=int)
+    page_approved = request.args.get('page_approved', 1, type=int)
+    per_page = 10
     if current_user.role_id != 1:
         flash('You do not have access to this page.', 'danger')
         return redirect(url_for('home'))
 
     # Fetch approved and unapproved orders from the database
-    approved_orders = db.session.query(Order).join(DrugOrder).filter(DrugOrder.prescription_approved == True).order_by(desc(DrugOrder.date_ordered)).all()
-    unapproved_prescriptions = db.session.query(Order).join(DrugOrder).filter(DrugOrder.prescription_approved == False).order_by(desc(DrugOrder.date_ordered)).all()
+    approved_orders = db.session.query(Order).join(DrugOrder, Order.id == DrugOrder.order_id).filter(DrugOrder.prescription_approved == True).group_by(Order.id).order_by(DrugOrder.date_ordered.desc()).paginate(page=page_approved, per_page=per_page, error_out=False)
+    unapproved_prescriptions = db.session.query(Order).join(DrugOrder, Order.id == DrugOrder.order_id).filter(DrugOrder.prescription_approved == None).group_by(Order.id).order_by(DrugOrder.date_ordered.desc()).paginate(page=page_unapproved, per_page=per_page, error_out=False)
+    
+    # Group by drugorder id and calculate the total quantity for each drugorder
+    drug_orders = db.session.query(
+        DrugOrder.id,
+        func.sum(DrugOrder.quantity).label('total_quantity')
+    ).group_by(DrugOrder.id).all()
 
-    # Pass the sorted lists to the template
-    return render_template('pharmacistdash.html', unapproved_prescriptions=unapproved_prescriptions, approved_orders=approved_orders)
+    # Pass the sorted lists and drug orders to the template
+    return render_template('pharmacistdash.html', unapproved_prescriptions=unapproved_prescriptions, approved_orders=approved_orders, drug_orders=drug_orders, page_unapproved=page_unapproved, page_approved=page_approved)
+
 
 @app.route('/review_order/<int:order_id>', methods=['GET', 'POST'])
 @login_required
 def review_order(order_id):
     # Fetch the order from the database
-    order = DrugOrder.query.get(order_id)
+    order = db.session.get(Order, order_id)
+    drug_order = DrugOrder.query.filter_by(order_id=order.id).first()
 
     # If the order doesn't exist, redirect to a different page or show an error
     if order is None:
@@ -128,28 +146,79 @@ def review_order(order_id):
     # Check if the form is submitted
     if request.method == 'POST':
         # Update the order status based on the form data
-        order.prescription_approved = (request.form.get('status') == 'approved')
+        status = request.form.get('status')
+        if status == 'approved':
+            print('approved')
+        elif status == 'denied':
+            print('denied')
 
-        # Update the drug and quantity based on the form data
-        drug_name = request.form.get('drug_name')
-        quantity = request.form.get('quantity')
-        refills = request.form.get('refills')  # Get the refill count from the form data
+        # Create a dictionary to store the drug orders by index
+        drug_orders = {}
 
-        # Find the drug by name
-        drug = Drug.query.filter_by(name=drug_name).first()
+        # Iterate over the form data
+        for key in request.form:
+            # Check if the key starts with 'drug_orders-' which indicates it's a drug order field
+            if key.startswith('drug_orders-'):
+                # Extract the index, field name and value
+                _, index, field = key.split('-')
+                index = int(index)  # Convert index to integer
+                value = request.form[key]
 
-        # If the drug exists, update the drug and quantity
-        if drug is not None:
-            order.drug = drug
-            order.quantity = quantity
-            order.refills = refills  # Update the refill count
+                print(f"Processing field '{field}' with value '{value}' for drug order {index}")
 
-        db.session.commit()
+                # Get the drug order for this index
+                if index not in drug_orders:
+                    # Check if this is a new drug order or an existing one
+                    existing_order = db.session.get(DrugOrder, index)
+                    if existing_order is not None:
+                        # This is an existing drug order, so use it
+                        drug_orders[index] = existing_order
+                    else:
+                        # This is a new drug order, so create a new DrugOrder instance
+                        drug_orders[index] = DrugOrder(order_id=order_id, date_ordered=datetime.now(timezone.utc))
+
+                drug_order = drug_orders[index]
+
+                # Update the corresponding field
+                if field == 'name':
+                    # Check if the value is an integer (drug id)
+                    if value.isdigit():
+                        drug = db.session.get(Drug, int(value))
+                        if drug is not None:
+                            drug_order.drug_id = drug.id
+                    else:
+                        # The value is a string (drug name)
+                        drug = Drug.query.filter_by(name=value).first()
+                        if drug is not None:
+                            drug_order.drug_id = drug.id
+                elif field == 'quantity':
+                    drug_order.quantity = int(value)
+                elif field == 'refills':
+                    drug_order.refills = int(value)
+
+                # Update the prescription_approved status
+                if status == 'approved':
+                    drug_order.prescription_approved = True
+                elif status == 'denied':
+                    drug_order.prescription_approved = False
+
+        # Add all new drug orders to the session
+        for drug_order in drug_orders.values():
+            db.session.add(drug_order)
+
+        try:
+            db.session.commit()
+            print('Update successful')
+        except Exception as e:
+            print('Update failed:', e)
+            db.session.rollback()
+
         return redirect(url_for('pharmacistdash'))
 
     # Render the review_order template
+    drug_orders = order.items
     drugs = Drug.query.all()
-    return render_template('review_order.html', order=order, drugs=drugs)
+    return render_template('review_order.html', order=order, drug_orders=drug_orders, drugs=drugs, drug_order=drug_order)
 
 # Prescription History route
 @app.route("/history")
@@ -162,26 +231,37 @@ def history():
 def track():
     return render_template('track.html')
 
+# Function to calculate total payment
+def calculate_total_payment(order):
+    return sum(item.drug.price * item.quantity for item in order.items)
+
 # Orders route
 @app.route('/orders')
 def orders():
     orders = Order.query.filter_by(user_id=current_user.id).join(DrugOrder).order_by(DrugOrder.date_ordered.desc()).all()
-    return render_template('orders.html', orders=orders)
+    return render_template('orders.html', orders=orders, calculate_total_payment=calculate_total_payment)
 
 @app.route('/pay', methods=['POST'])
 def pay():
     data = request.get_json()
-    order_id = data.get('orderId')
+    drug_order_id = data.get('orderId')
 
-    if order_id is None:
+    if drug_order_id is None:
         return jsonify(success=False, error='No order ID provided'), 400
 
-    drug_order = DrugOrder.query.get(order_id)
+    # Get the DrugOrder with the provided id
+    drug_order = db.session.get(DrugOrder, drug_order_id)
 
     if drug_order is None:
         return jsonify(success=False, error='No order found with this ID'), 404
 
-    drug_order.paid = True
+    # Get the Order of the DrugOrder
+    order = drug_order.order
+
+    # Mark all drug_orders in the order as paid
+    for do in order.items:
+        do.paid = True
+
     db.session.commit()
 
     return jsonify(success=True)
@@ -194,7 +274,7 @@ def payrefill():
     if order_id is None:
         return jsonify(success=False, error='No order ID provided'), 400
 
-    drug_order = DrugOrder.query.get(order_id)
+    drug_order = db.session.get(DrugOrder, order_id)
 
     if drug_order is None:
         return jsonify(success=False, error='No order found with this ID'), 404
@@ -210,11 +290,16 @@ def payrefill():
 # Support route
 @app.route("/support", methods=["GET", "POST"])
 def support():
-    if request.method == "POST":
+    form = SupportForm()
+    if form.validate_on_submit():
         # Logic to handle support queries
-        # This could involve sending an email or storing the query in a database
-        pass
-    return render_template("support.html")
+        flash('Your message has been sent successfully!', 'success')
+        return redirect(url_for('support'))
+    elif request.method == 'POST':
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"Error in the {getattr(form, field).label.text} field - {error}", 'error')
+    return render_template("support.html", form=form)
 
 # Login route
 @app.route("/login", methods=['GET', 'POST'])
@@ -240,15 +325,43 @@ def logout():
     flash('You have successfully logged out.', 'success')
     return redirect(url_for('home'))
 
+class Namespace:
+    def __init__(self):
+        self.unpaid_approved_count = 0
+
+ns = Namespace()
+
 # Dashboard Route
 @app.route("/dashboard")
 def dashboard():
+    total_unapproved_count = 0  # Define total_unapproved_count here
     if current_user.is_authenticated:
-        return render_template('dashboard.html', title='Dashboard', name=current_user.name, email=current_user.email)
+        if current_user.role_id == 1:  # if the user is a pharmacist
+            # Fetch all unique order_ids where prescription_approved is None
+            drugorders = DrugOrder.query.filter(DrugOrder.prescription_approved == None).all()
+            unique_order_ids = DrugOrder.query.with_entities(distinct(DrugOrder.order_id)).filter(DrugOrder.prescription_approved == None).all()
+            total_unapproved_count = len(unique_order_ids)  # Update total_unapproved_count here
+        else:  # for other users
+            orders = Order.query.filter_by(user_id=current_user.id).all()
+            drugorders = [drugorder for order in orders for drugorder in order.items]
+            unique_unpaid_approved_order_ids = list(set([drugorder.order_id for drugorder in drugorders if drugorder.prescription_approved == True and drugorder.paid == False]))
+            unique_unapproved_order_ids = list(set([drugorder.order_id for drugorder in drugorders if drugorder.prescription_approved == None]))
+
+            # Count the number of unique unpaid approved and unapproved prescriptions
+            ns.unpaid_approved_count = len(unique_unpaid_approved_order_ids)
+            total_unapproved_count = len(unique_unapproved_order_ids)  # Update total_unapproved_count here
+
+        return render_template('dashboard.html', title='Dashboard', name=current_user.name, email=current_user.email, drugorders=drugorders, unpaid_approved_count=ns.unpaid_approved_count, total_unapproved_count=total_unapproved_count)
     else:
         return redirect(url_for('login'))
-
 # User details route
+def format_phone(phone):
+    if phone is None:
+        raise TypeError("Phone number cannot be None")
+    phone = phone.replace("-", "")  # remove any existing dashes
+    phone = "{}-{}-{}".format(phone[:3], phone[3:6], phone[6:])  # insert dashes
+    return phone
+
 @app.route('/userdetails', methods=['GET', 'POST'])
 @login_required
 def userdetails():
@@ -260,10 +373,7 @@ def userdetails():
             current_user.phn = form.phn.data  # update PHN
 
             # Format phone number with dashes
-            phone = form.phone.data
-            phone = phone.replace("-", "")  # remove any existing dashes
-            phone = "{}-{}-{}".format(phone[:3], phone[3:6], phone[6:])  # insert dashes
-            current_user.phone = phone
+            current_user.phone = format_phone(form.phone.data)
 
             if form.new_password.data:
                 current_user.password = bcrypt.generate_password_hash(form.new_password.data).decode('utf-8')
