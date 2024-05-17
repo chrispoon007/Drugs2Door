@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<!-- Unapproved Prescriptions -->
+<h2>Unapproved Prescriptions</h2>
+<table class="table" id="unapprovedTable">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">PHN</th>
+            <th scope="col">Drug</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Date Ordered</th>
+            <th scope="col">Prescription</th>
+            <th scope="col">Status</th>
+            <th scope="col">Review Order</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in unapproved_prescriptions %}
+            <tr>
+                <th scope="row">{{ order.id }}</th>
+                <td>{{ order.user.name }}</td>
+                <td>{{ order.user.email }}</td>
+                <td>{{ order.user.phn }}</td>
+                <td>
+                    {% for item in order.items %}
+                        {% if not item.prescription_approved %}
+                            {{ item.drug.name }}<br>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for item in order.items %}
+                        {% if not item.prescription_approved %}
+                            {{ item.quantity }}<br>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% if order.items|length > 0 %}
+                        {{ order.items[0].date_ordered.strftime('%Y-%m-%d %H:%M:%S') }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if order.items|length > 0 %}
+                        {% if order.items[0].image_file %}
+                            <div style="text-align: center;">
+                                <img src="{{ url_for('uploaded_file', filename=order.items[0].image_file) }}" alt="Prescription Image" style="width: 100px; height: auto; cursor: pointer;" onclick="showImage(this)">
+                            </div>
+                        {% else %}
+                            No Image Found
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td>Unapproved</td>
+                <td><a href="{{ url_for('review_order', order_id=order.id) }}">Review</a></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+                </table>
+                <div aria-label="Page navigation for unapproved prescriptions">
+                    <ul class="pagination justify-content-center">
+                      {% if unapproved_prescriptions.has_prev %}
+                        <li class="page-item">
+                          <a class="page-link" href="{{ url_for('pharmacistdash', page_unapproved=page_unapproved-1, page_approved=page_approved) }}">Previous</a>
+                        </li>
+                      {% endif %}
+                      <li class="page-item disabled">
+                        <span class="page-link">Page {{ page_unapproved }}</span>
+                      </li>
+                      {% if unapproved_prescriptions.has_next %}
+                        <li class="page-item">
+                          <a class="page-link" href="{{ url_for('pharmacistdash', page_unapproved=page_unapproved+1, page_approved=page_approved) }}">Next</a>
+                        </li>
+                      {% endif %}
+                    </ul>
+                  </div>
+
+<!-- Approved Orders -->
+<h2>Approved Orders</h2>
+<table class="table" id="approvedTable">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">PHN</th>
+            <th scope="col">Drug</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Refills Remaining</th>
+            <th scope="col">Date Ordered</th>
+            <th scope="col">Prescription</th>
+            <th scope="col">Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in approved_orders %}
+            <tr>
+                <th scope="row">{{ order.id }}</th>
+                <td>{{ order.user.name }}</td>
+                <td>{{ order.user.email }}</td>
+                <td>{{ order.user.phn }}</td>
+                <td>
+                    {% for item in order.items %}
+                        {% if item.prescription_approved %}
+                            {{ item.drug.name }}<br>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for item in order.items %}
+                        {% if item.prescription_approved %}
+                            {{ item.quantity }}<br>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for item in order.items %}
+                        {% if item.prescription_approved %}
+                            {{ item.refills }}<br>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% if order.items|length > 0 %}
+                        {{ order.items[0].date_ordered.strftime('%Y-%m-%d %H:%M:%S') }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if order.items|length > 0 %}
+                        {% if order.items[0].image_file %}
+                            <div style="text-align: center;">
+                                <img src="{{ url_for('uploaded_file', filename=order.items[0].image_file) }}" alt="Prescription Image" style="width: 100px; height: auto; cursor: pointer;" onclick="showImage(this)">
+                            </div>
+                        {% else %}
+                            No Image Found
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td>Approved</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div aria-label="Page navigation for approved orders">
+    <ul class="pagination justify-content-center">
+      {% if approved_orders.has_prev %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('pharmacistdash', page_unapproved=page_unapproved, page_approved=page_approved-1) }}">Previous</a>
+        </li>
+      {% endif %}
+      <li class="page-item disabled">
+        <span class="page-link">Page {{ page_approved }}</span>
+      </li>
+      {% if approved_orders.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('pharmacistdash', page_unapproved=page_unapproved, page_approved=page_approved+1) }}">Next</a>
+        </li>
+      {% endif %}
+    </ul>
+  </div>
+
+<script>
+$(document).ready(function(){
+    attachPageLinkHandler();
+});
+
+function attachPageLinkHandler() {
+    $(".page-link").off('click').on('click', function(e){
+        e.preventDefault();
+        var pageLink = $(this).attr('href');
+        $.ajax({
+            url: pageLink,
+            type: 'GET',
+            success: function(response){
+                // Create a temporary div to hold the response
+                var tempDiv = document.createElement('div');
+                tempDiv.innerHTML = response;
+
+                // Extract the table data and pagination data
+                var unapprovedTableData = tempDiv.querySelector('#unapprovedTable').innerHTML;
+                var approvedTableData = tempDiv.querySelector('#approvedTable').innerHTML;
+                var unapprovedPaginationData = tempDiv.querySelector('[aria-label="Page navigation for unapproved prescriptions"]').innerHTML;
+                var approvedPaginationData = tempDiv.querySelector('[aria-label="Page navigation for approved orders"]').innerHTML;
+
+                // Replace the content of your tables and pagination with the extracted data
+                $('#unapprovedTable').html(unapprovedTableData);
+                $('#approvedTable').html(approvedTableData);
+                $('[aria-label="Page navigation for unapproved prescriptions"]').html(unapprovedPaginationData);
+                $('[aria-label="Page navigation for approved orders"]').html(approvedPaginationData);
+
+                // Reattach the event handler
+                attachPageLinkHandler();
+            }
+        });
+    });
+}
+</script>
+
+<script>
+    function showImage(img) {
+        var src = img.src;
+        var largeImage = document.createElement('img');
+        largeImage.src = src;
+        largeImage.style.display = 'block';
+        largeImage.style.width = '500px'; // or the width you want
+        largeImage.style.height = 'auto';
+    
+        var overlay = document.createElement('div');
+        overlay.style.display = 'flex';
+        overlay.style.justifyContent = 'center';
+        overlay.style.alignItems = 'center';
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.bottom = '0';
+        overlay.style.left = '0';
+        overlay.style.right = '0';
+        overlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+        overlay.onclick = function() {
+            document.body.removeChild(overlay);
+        }
+    
+        overlay.appendChild(largeImage);
+        document.body.appendChild(overlay);
+    }
+</script>
+
+{% endblock %}

@@ -4,7 +4,14 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="stylesheet" href="../static/css/styles.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
 </head>
 {% if request.endpoint != 'home' %}
 <style>
@@ -31,16 +38,26 @@
 {% endif %}
 <body>
     <nav>
-        <a href="{{ url_for('home') }}">Homepage</a>
+        <a href="{{ url_for('home') }}">
+            <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Homepage Logo" class="img-fluid" style="max-width: 50px;">
+        </a>
         {% if current_user.is_authenticated %}
-            <a href="{{ url_for('dashboard') }}">Dashboard</a>
-            <a href="{{ url_for('upload') }}">Upload Prescription</a>
-            <a href="{{ url_for('history') }}">Prescription History</a>
-            <a href="{{ url_for('orders') }}">Orders</a>
-            <div class="right-align">
-                <span>Welcome<a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
+        {% if current_user.role_id == 2 %}
+        <a href="{{ url_for('dashboard') }}" class="h5">Dashboard</a>
+        <a href="{{ url_for('upload') }}" class="h5">Upload Prescription</a>
+        <a href="{{ url_for('orders') }}" class="h5">Orders</a>
+            <div class="right-align d-flex align-items-center my-auto">
+                <span>Welcome <a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
                 <a href="{{ url_for('support') }}">Support</a> |
                 <a href="{{ url_for('logout') }}">Logout</a>
+        {% elif current_user.role_id == 1 %}
+        <a href="{{ url_for('dashboard') }}" class="h5">Pharmacist Dashboard</a>
+        <a href="{{ url_for('pharmacistdash') }}" class="h5">All Orders</a>
+            <div class="right-align d-flex align-items-center my-auto">
+                <span>Welcome <a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
+                <a href="{{ url_for('support') }}">Support</a> |
+                <a href="{{ url_for('logout') }}">Logout</a>
+                {% endif %}
             </div>
         {% else %}
             <div class="right-align">
@@ -70,5 +87,22 @@
     {% endif %}
 {% endwith %}
     {% block content %}{% endblock %}
+        <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <p>Privacy Policy</p>
+                    <p>Terms of Service</p>
+                </div>
+                <div class="col-md-4">
+                    <p>555 Seymour Street, Vancouver, BC, Canada</p>
+                    <p>Phone: (604) 456-7890</p>
+                </div>
+                <div class="col-md-4">
+                    <p>&copy; 2024 Drugs2Door. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>

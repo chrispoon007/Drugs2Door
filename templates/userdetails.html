@@ -49,6 +49,11 @@
         {% endif %}
       </div>
 
+      <div class="form-group">
+        <label for="phn">Personal Health Number (PHN): (Cannot be Changed)</label>
+        <input type="text" name="phn" class="form-control" value="{{ form.phn.data }}" disabled>
+      </div>
+
     <div class="form-group">
       <label for="address">Address:</label>
       {{ form.address(class="form-control") }}

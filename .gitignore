@@ -6,6 +6,9 @@ __pycache__/
 # Database File
 /data/sql.db
 
+# Image Uploads
+/data/uploads/
+
 # C extensions
 *.so
 

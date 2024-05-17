@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 <h2>Orders/Refills</h2>
 
 {% if current_user.is_authenticated %}
@@ -10,35 +11,92 @@
         <tr>
           <th>Order ID</th>
           <th>Date Ordered</th>
+          <th>Prescription Approved</th>
           <th>Drug Name</th>
           <th>Price</th>
           <th>Quantity</th>
+          <th>Total Cost</th>
+          <th>Payment Status</th>
           <th>Date Delivered</th>
-          <th>View Prescription</th>
-          <th>Track Order</th>  
+          <th>Prescription Image</th>
+          <th>Delivery Status</th>
+          <th>Refills</th>
         </tr>
       </thead>
       <tbody>
         {% for order in orders %}
-        {% for drug_order in order.items %}
-        <tr>
-            <td>{{ order.id }}</td>
-            <td>{{ drug_order.date_ordered.strftime('%Y-%m-%d %H:%M:%S') }}</td>
-            <td>{{ drug_order.drug.name }}</td>
-            <td>&#36;{{ drug_order.drug.price }}</td>
-            <td>{{ drug_order.quantity }}</td>
-            <td>{{ drug_order.date_delivered.strftime('%Y-%m-%d %H:%M:%S') if drug_order.date_delivered else 'Not Delivered Yet' }}</td>
-            <td><a href="{{ url_for('history', order_id=order.id) }}">View</a></td>
-            <td>
-                {% if drug_order.date_delivered %}
-                Already Delivered
-                {% else %}
-                <a href="{{ url_for('history', order_id=order.id) }}">Track</a>
+          {% for drug_order in order.items %}
+            {% set total_payment = 0 %}
+            {% for item in drug_order.items %}
+              {% set total_payment = total_payment + (item.drug.price * item.quantity) %}
+            {% endfor %}
+            <tr>
+                {% if loop.first %}
+                  <td rowspan="{{ order.items|length }}">{{ order.id }}</td>
+                  <td rowspan="{{ order.items|length }}">{{ drug_order.date_ordered.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                  <td rowspan="{{ order.items|length }}">{{ 'Yes' if drug_order.prescription_approved else 'No' }}</td>
                 {% endif %}
-            </td> 
-        </tr>
+                <td>{{ drug_order.drug.name }}</td>
+                <td>&#36;{{ drug_order.drug.price }}</td>
+                <td>{{ drug_order.quantity }}</td>
+                <td>
+                  {% if drug_order.drug is not none %}
+                    &#36;{{ drug_order.drug.price * drug_order.quantity }}
+                  {% else %}
+                    No Drug Yet
+                  {% endif %}
+                </td>
+                {% if loop.first %}
+                <td rowspan="{{ order.items|length }}" td style="width: 250px;">
+                  {% if drug_order.prescription_approved %}
+                    {% if drug_order.paid %}
+                      Paid via CC
+                     <br> Total: &#36;{{ calculate_total_payment(order) }}
+                    {% else %}
+                      <button onclick="openPaymentForm({{ drug_order.id }})">Pay Now</button> 
+                      <br>Total: &#36;{{ calculate_total_payment(order) }}
+                    {% endif %}
+                  {% else %}
+                    Not Approved Yet
+                  {% endif %}
+                </td>
+                  <td rowspan="{{ order.items|length }}">{{ drug_order.date_delivered.strftime('%Y-%m-%d %H:%M:%S') if drug_order.date_delivered else ('Not Approved Yet' if not drug_order.prescription_approved else 'Not Delivered Yet') }}</td>
+                  <td rowspan="{{ order.items|length }}">
+                    {% if drug_order.image_file %}
+                        <div style="text-align: center;">
+                            <img src="{{ url_for('uploaded_file', filename=drug_order.image_file) }}" alt="Prescription Image" style="width: 100px; height: auto; cursor: pointer;" onclick="showImage(this)">
+                        </div>
+                    {% else %}
+                        No Image Found
+                    {% endif %}
+                  </td>
+                  <td rowspan="{{ order.items|length }}">
+                    {% if drug_order.date_delivered %}
+                    Already Delivered
+                    {% elif drug_order.paid %}
+                    <a href="{{ url_for('track', order_id=order.id) }}">Track</a>
+                    {% elif not drug_order.paid %}
+                    Not Paid Yet
+                    {% else %}
+                    Not Delivered Yet
+                    {% endif %}
+                  </td>
+                {% endif %}
+                <td style="width: 300px;">
+                  {% if drug_order.refills > 0 %}
+                    {{ drug_order.refills }}
+                    {% if drug_order.paid %}
+                      <button onclick="openModal({{ drug_order.id }})">Request Refill</button>
+                    {% else %}
+                      - Payment Required for Refill
+                    {% endif %}
+                  {% else %}
+                    No Refills Available
+                  {% endif %}
+                </td>
+            </tr>
+          {% endfor %}
         {% endfor %}
-    {% endfor %}
       </tbody>
     </table>
   {% else %}
@@ -50,5 +108,162 @@
     <a href="{{ url_for('login') }}">Login</a>
   </div>
 {% endif %}
+<div class="modal-content" style="margin-top: 80px;">  
+<!-- Payment form -->
+<div id="paymentForm" class="modal" tabindex="-1" role="dialog" style="display: none;">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Enter Credit Card Details for Payment</h5>
+        <button type="button" class="close" onclick="document.getElementById('paymentForm').style.display='none'">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label for="cardNumber">Card Number:</label>
+            <input type="text" class="form-control" id="cardNumber" name="cardNumber" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" maxlength="16">
+          </div>
+          <div class="form-group">
+            <label for="expiryDate">Expiry Date:</label>
+            <input type="text" class="form-control" id="expiryDate" name="expiryDate" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" maxlength="4">
+          </div>
+          <div class="form-group">
+            <label for="cvv">CVV:</label>
+            <input type="text" class="form-control" id="cvv" name="cvv" oninput="this.value = this.value.replace(/[^0-9]/g, '').replace(/(\..*)\./g, '$1');" maxlength="3">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="payNow()">Pay</button>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('paymentForm').style.display='none'">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
 
+<!-- Refill modal -->
+<div id="refillModel" class="modal" tabindex="-1" role="dialog" style="display: none;">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Request Refill</h5>
+        <button type="button" class="close" onclick="document.getElementById('refillModel').style.display='none'">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to request a refill?</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" onclick="requestRefill()">Yes</button>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('refillModel').style.display='none'">No</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showImage(img) {
+      var src = img.src;
+      var largeImage = document.createElement('img');
+      largeImage.src = src;
+      largeImage.style.display = 'block';
+      largeImage.style.width = '500px'; // or the width you want
+      largeImage.style.height = 'auto';
+  
+      var overlay = document.createElement('div');
+      overlay.style.display = 'flex';
+      overlay.style.justifyContent = 'center';
+      overlay.style.alignItems = 'center';
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.bottom = '0';
+      overlay.style.left = '0';
+      overlay.style.right = '0';
+      overlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+      overlay.onclick = function() {
+          document.body.removeChild(overlay);
+      }
+  
+      overlay.appendChild(largeImage);
+      document.body.appendChild(overlay);
+  }
+
+  function openPaymentForm(orderId) {
+    document.getElementById('paymentForm').style.display = 'block';
+    window.orderId = orderId;  // Save orderId for later use
+  }
+
+  function openModal(orderId) {
+    document.getElementById('refillModel').style.display = 'block';
+    window.orderId = orderId;
+  }
+
+  function payNow() {
+    // Validate credit card details here...
+
+    // Send AJAX request to server to update drug_order.paid
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/pay", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState === 4 && xhr.status === 200) {
+        var json = JSON.parse(xhr.responseText);
+        if (json.success) {
+          alert('Payment successful!');
+          document.getElementById('paymentForm').style.display = 'none';
+          location.reload();  // Reload page to update "Paid?" column
+        } else {
+          alert('Payment failed: ' + json.error);
+        }
+      }
+    };
+    var data = JSON.stringify({"orderId": window.orderId});
+    xhr.send(data);
+  }
+var modal = document.getElementById("paymentModal");
+var span = document.getElementsByClassName("close")[0];
+var form = document.getElementById("paymentForm");
+var orderId;
+
+
+span.onclick = function() {
+    modal.style.display = "none";
+}
+
+window.onclick = function(event) {
+    if (event.target == modal) {
+        modal.style.display = "none";
+    }
+}
+
+form.onsubmit = function(event) {
+    event.preventDefault();
+    var cardNumber = document.getElementById("cardNumber").value;
+    if (cardNumber) {
+        requestRefill();  // Removed orderId
+    }
+}
+
+function requestRefill() {  // Removed orderId
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/payrefill", true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            var json = JSON.parse(xhr.responseText);
+            if (json.success) {
+                alert('Payment successful!');
+                location.reload();  // Reload page to update "Refill(s)" column
+            } else {
+                alert('Payment failed: ' + json.error);
+            }
+        }
+    };
+    var data = JSON.stringify({"orderId": window.orderId});  // Use window.orderId
+    xhr.send(data);
+}
+</script>
 {% endblock %}
