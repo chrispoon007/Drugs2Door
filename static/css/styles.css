@@ -1,3 +1,10 @@
+:root {
+    --orange: #FF6300;
+    --bone: #FEFEE6;
+    --navy: #012E41;
+    /* Add more colors as needed */
+}
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
