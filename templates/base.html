@@ -11,6 +11,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
     
 </head>
 {% if request.endpoint != 'home' %}
@@ -67,9 +68,23 @@
         {% endif %}
     </nav>
     {% if request.endpoint == 'home' %}
-        <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Drugs2Door Logo" class="logo"></a> 
-        <h1> Welcome to Drugs2Door!</h1>
-        <h2> Your Dose Delivered, Stat!</h2>
+        <div class="wrapper">
+            <div class="first-wrapper">
+                <h1> Your Dose Delivered, Stat!</h1>
+            </div>
+            <div class="second-wrapper">
+                <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/main-1.svg') }}" alt="pharmacist handing over paperwork" class="vector"></a>
+                <div>
+                    <h4>Get your drugs at your doorstep</h4>
+                    <ul>
+                        <li>Get straight delivery to the doorstep</li>
+                        <li>We deliver within 24hrs of request</li>
+                        <li>We gurantee speedily response</li>
+                    </ul>
+                    <button type="button"> Click Me! </button>
+                </div>
+            </div>
+        </div>
     {% else %}
         <div class="header">
             <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Drugs2Door Logo" class="logo"></a>   
