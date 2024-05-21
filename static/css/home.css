@@ -8,12 +8,13 @@ body {
 
 .vector {
     width: 300px;
-    height: 300px;  
+    height: 300px;
 }
 
 .wrapper {
     display: flex;
-    margin: 5%;
+    margin-top: 5%;
+    margin-bottom: 12%;
     flex-direction: column;
 }
 
@@ -25,6 +26,19 @@ body {
     flex-direction: row;
 }
 
+.second-wrapper div h4 {
+    font-weight: 700;
+    margin-right: 24px;
+}
+
+.second-wrapper a {
+    margin-right: -100px;
+}
+
+.second-wrapper > div {
+    margin-left: -100px;
+}
+
 .third-wrapper {
     display: flex;
     justify-content: space-around;
@@ -32,6 +46,7 @@ body {
     margin-top: 50px;
     flex-direction: row;
 }
+
 
 h1 {
     font-weight: 700;
@@ -70,3 +85,16 @@ button {
   .button:hover svg {
     transform: translateX(10px);
   }
+
+  li {
+    list-style-type: disc;
+    margin-left: 15px;
+  }
+
+.third-wrapper > div {
+    margin-left: 100px;
+}
+
+.third-wrapper a {
+    margin-right: 100px;
+}
