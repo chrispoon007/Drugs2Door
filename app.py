@@ -3,7 +3,8 @@ from pathlib import Path
 from db import db
 from models import Drug, Order, DrugOrder, User
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func, desc, distinct
+from sqlalchemy import func, desc, distinct, create_engine
+from sqlalchemy.orm import Session
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo
@@ -31,7 +32,6 @@ app.config["SECRET_KEY"] = '12345678901'
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
 
 # Registration form
 @app.route("/register", methods=['GET', 'POST'])
@@ -139,7 +139,7 @@ def pharmacistdash():
 @login_required
 def review_order(order_id):
     # Fetch the order from the database
-    order = Order.query.get(order_id)
+    order = db.session.get(Order, order_id)
     drug_order = DrugOrder.query.filter_by(order_id=order.id).first()
 
     # If the order doesn't exist, redirect to a different page or show an error
@@ -149,6 +149,7 @@ def review_order(order_id):
 
     # Check if the form is submitted
     if request.method == 'POST':
+
         # Update the order status based on the form data
         status = request.form.get('status')
         deny_reason = request.form.get('denyReason')  # Get the deny reason from the form data
@@ -175,7 +176,7 @@ def review_order(order_id):
                 # Get the drug order for this drug_order_id
                 if drug_order_id not in drug_orders:
                     # Check if this is a new drug order or an existing one
-                    existing_order = DrugOrder.query.get(drug_order_id)
+                    existing_order = db.session.get(DrugOrder, drug_order_id)
                     if existing_order is not None:
                         # This is an existing drug order, so use it
                         drug_orders[drug_order_id] = existing_order
@@ -189,7 +190,7 @@ def review_order(order_id):
                 if field == 'name':
                     # Check if the value is an integer (drug id)
                     if value.isdigit():
-                        drug = Drug.query.get(int(value))
+                        drug = db.session.get(Drug, int(value))
                         if drug is not None:
                             drug_order.drug_id = drug.id
                     else:
@@ -228,16 +229,10 @@ def review_order(order_id):
     drugs = Drug.query.all()
     return render_template('review_order.html', order=order, drug_orders=drug_orders, drugs=drugs, drug_order=drug_order)
 
-# Prescription History route
-@app.route("/history")
-def history():
-    # Logic to fetch and display the prescription history
-    # This will depend on how you're storing prescriptions
-    return render_template("history.html")
-
 @app.route('/track', methods=['GET'])
 def track():
-    return render_template('track.html')
+    order_id = request.args.get('order_id', default = 1, type = int)
+    return render_template('track.html', order_id=order_id)
 
 # Function to calculate total payment
 def calculate_total_payment(order):
@@ -257,7 +252,7 @@ def get_deny_reason():
     if order_id is None:
         return jsonify({'success': False, 'error': 'No orderId provided'}), 400
 
-    drug_order = DrugOrder.query.get(order_id)
+    drug_order = DrugOrder.query.get(DrugOrder, order_id)
 
     if drug_order is None:
         return jsonify({'success': False, 'error': 'No order found with this id'}), 404
@@ -359,6 +354,7 @@ ns = Namespace()
 def dashboard():
     total_unapproved_count = 0  # Define total_unapproved_count here
     denied_count = 0  # Define denied_count here
+    unpaid_approved_count = 0  # Define unpaid_approved_count here
     if current_user.is_authenticated:
         if current_user.role_id == 1:  # if the user is a pharmacist
             # Fetch all unique order_ids where prescription_approved is None
@@ -382,11 +378,11 @@ def dashboard():
             # Count the number of unique denied prescriptions
             unique_denied_order_ids = list(set([drugorder.order_id for drugorder in drugorders if drugorder.prescription_approved == False]))
             denied_count = len(unique_denied_order_ids)  # Update denied_count here
-            
 
         return render_template('dashboard.html', title='Dashboard', name=current_user.name, email=current_user.email, drugorders=drugorders, unpaid_approved_count=unpaid_approved_count, total_unapproved_count=total_unapproved_count, denied_count=denied_count)
     else:
         return redirect(url_for('login'))
+    
 # User details route
 def format_phone(phone):
     if phone is None:
