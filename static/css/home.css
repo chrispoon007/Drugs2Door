@@ -105,6 +105,7 @@ button {
     height: 350px;
     justify-content: space-around;
     color: #FFF;
+    flex-direction: column;
 }
 
 .f-cont {
@@ -112,7 +113,6 @@ button {
     align-items: center;
     flex-direction: row;
     justify-content: space-around;
-    width: 100%;
 }
 
 .f-cont > div > h4 {
@@ -123,6 +123,10 @@ button {
 
 .signup {
     flex-direction: column;
+}
+
+.signup p {
+    font-weight: bold;
 }
 
 .subscription-form {
@@ -158,3 +162,42 @@ button {
     background-color: var(--orange);
 }
 
+.second-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.inner-cont-1 {
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    text-align: left;
+}
+
+.inner-cont-1 p {
+    text-align: left;
+    font-weight: bold;
+    font-style: italic;
+}
+
+.inner-cont-1 h5 {
+    font-weight: bold;
+}
+
+.inner-cont-2 {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    height: 120px;
+}
+.inner-cont-2 h5 {
+    font-weight: bold;
+}
+
+.inner-cont-3 {
+    display: flex;
+    flex-direction: column-reverse;
+    text-align: right;
+    height: 120px;
+}
