@@ -124,22 +124,22 @@
     {% endif %}
 {% endwith %}
     {% block content %}{% endblock %}
-        <footer class="footer">
-        <div class="first-container">
-            <div>
+    <footer class="foot">
+        <div class="f-cont">
+            <div class="signup">
                 <h4>Sign up for our Newsletter</h4>
                 <p>
                     Get to know updates in the field of medicine <br> and know how often our stores are stocked
                 </p>
             </div>
-            <div>
-                <h5>Your Email</h5>
-                <input type="email" placeholder="Enter your email">
-                <button>Subscribe</button>
+            <div class="subscription-form">
+                <form>
+                    <input type="email" id="email" name="email" placeholder="Your email address">
+                    <button type="submit">Subscribe</button>
+                </form>
             </div>
         </div>
-        <div class="second-container">
-            <div class="second-row">
+        <!-- <div class="second-container">
                 <div>
                     <h5>Drugs2Door</h5>
                     <p>Your favourite online pharmacy store. We offer onsite delivery and your health is our priority</p>
@@ -155,8 +155,7 @@
                     <p>&copy; 2024 Drugs2Door. All rights reserved.</p>
                     <h6>Terms Of Service</h6>
                 </div>
-            </div>
-        </div>
+        </div> -->
     </footer>
 </body>
 </html>

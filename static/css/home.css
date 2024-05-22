@@ -99,30 +99,62 @@ button {
     margin-right: 100px;
 }
 
-.footer {
+.foot {
     background-color: var(--navy);
     display: flex;
-    flex-direction: column; 
-    align-items: center;
-    margin: 0;
-    justify-content: center;
-}
-
-h6 {
-    color: #ffffff;
-}
-
-h5 {
-    color: #ffffff;
-}
-
-.first-container {
-    display: flex;
+    height: 350px;
     justify-content: space-around;
-    flex-direction: row;
+    color: #FFF;
 }
 
-.first-container > div > h4 {
-    color: var(--orange);
+.f-cont {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+}
+
+.f-cont > div > h4 {
+    font-weight: bolder;
+    font-style: italic;
+    color: var(--bone);
+}
+
+.signup {
+    flex-direction: column;
+}
+
+.subscription-form {
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+}
+
+
+.subscription-form form {
+    display: flex;
+    flex-direction: column;
+}
+
+.subscription-form input[type="email"] {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.subscription-form button {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #3498db;
+    color: white;
+    cursor: pointer;
+}
+
+.subscription-form button:hover {
+    background-color: var(--orange);
 }
 
