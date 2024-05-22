@@ -98,3 +98,31 @@ button {
 .third-wrapper a {
     margin-right: 100px;
 }
+
+.footer {
+    background-color: var(--navy);
+    display: flex;
+    flex-direction: column; 
+    align-items: center;
+    margin: 0;
+    justify-content: center;
+}
+
+h6 {
+    color: #ffffff;
+}
+
+h5 {
+    color: #ffffff;
+}
+
+.first-container {
+    display: flex;
+    justify-content: space-around;
+    flex-direction: row;
+}
+
+.first-container > div > h4 {
+    color: var(--orange);
+}
+
