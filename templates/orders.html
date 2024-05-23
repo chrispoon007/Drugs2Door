@@ -1,12 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
+<style>
+  table, td {
+  border-color: #012E41;
+}
+th {
+  background-color: #012E41;
+  color: #FEFEE6;
+  font-weight: bold;
+}
+td {
+  border-left: none;
+  border-right: none;
+  border-bottom: 1.15px solid #ff6300
+}
+</style>
 
 <h2>Orders/Refills</h2>
 
 {% if current_user.is_authenticated %}
   {% if current_user.orders %}
-    <table style="width: 80%; table-layout: auto;">
+    <table style="width: 50%; table-layout: auto;">
       <thead>
         <tr>
           <th>Order ID</th>
@@ -33,7 +48,7 @@
             <tr>
                 {% if loop.first %}
                   <td rowspan="{{ order.items|length }}">{{ order.id }}</td>
-                  <td rowspan="{{ order.items|length }}">{{ drug_order.date_ordered.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                  <td rowspan="{{ order.items|length }}">{{ drug_order.date_ordered.strftime('%Y-%m-%d %H:%M') }}</td>
                   <td rowspan="{{ order.items|length }}">{{ 'Yes' if drug_order.prescription_approved else 'No' }}</td>
                 {% endif %}
                 <td>{{ drug_order.drug.name }}</td>
