@@ -13,6 +13,7 @@ from sqlalchemy.orm import session
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
 from forms import UserUpdateForm, SupportForm, LoginForm
+import shutil
 
 bcrypt = Bcrypt(app)
 
@@ -590,6 +591,8 @@ class TestUploadRoute(unittest.TestCase):
 
         with app.app_context():
             db.create_all()  # create all tables in the database
+            # Ensure the upload directory exists
+            os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
     @patch('app.get_uploader_name')
     def test_upload_post(self, mock_get_uploader_name):
@@ -611,7 +614,9 @@ class TestUploadRoute(unittest.TestCase):
     def tearDown(self):
         with app.app_context():
             db.session.remove()
-            db.drop_all() 
+            db.drop_all()
+            # Optionally, remove the upload directory after the test
+            shutil.rmtree(app.config['UPLOAD_FOLDER'], ignore_errors=True)
 
 class TestPayRoute:
     def setup_method(self):
