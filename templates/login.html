@@ -4,26 +4,30 @@
 <style>
     .form-container {
         display: flex;
-        flex-direction: column;
-        justify-content: center;
+        flex-direction: row;
+        justify-content: space-around;
         align-items: center;
         margin-top: 50px;
-        border: 1px solid #ccc;
+        border: none;
         padding: 20px;
-        width: 350px;
-        margin: 0 auto;
+        margin-bottom: 100px;
+        width: 80%; /* Adjust this value as needed */
+        margin: 0 auto; 
     }
     .form-field {
         margin: 10px 0;
+        
     }
     .form-field label {
         font-weight: bold;
     }
     .form-field input {
+        height: 38px;
         width: 100%;
         padding: 10px;
         border-radius: 5px;
-        border: 1px solid #ccc;
+        border: 1px solid #012e41;
+        background-color: #FEFEE6;
     }
     .form-field input[type="submit"] {
         cursor: pointer;
@@ -32,10 +36,28 @@
         font-weight: bold;
         width: 100%;
     }
-</style>
+    h2 {
+        color: #012e41;
+        font-weight: bold;
+    }
+    .center-text {
+    text-align: center;
+    }
+    a {
+        color: #ff6300;
+    }
+    p {
+        margin-top: 20px;
+        font-weight: bold;
+        color: #012e41;
+    }
+    </style>
+
 
 <h2 style="text-align: center;">Login</h2>
 <div class="form-container">
+    <a href="{{ url_for('login') }}"><img src="{{ url_for('static', filename='images/Login-Vector.svg') }}" alt="" class="vector"></a>
+    
     <form method="POST">
         {{ form.hidden_tag() }}
         <div class="form-field">
@@ -50,5 +72,8 @@
             {{ form.submit() }}
         </div>
     </form>
+</div>
+<div class = "center-text">
+    <p>Don't have an account? <a href="{{ url_for('register') }}">Sign Up </a></p>
 </div>
 {% endblock %}

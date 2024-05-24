@@ -36,9 +36,11 @@
     }
     .right-align {
         float: right;
+        font-weight: bold;
     }
     nav {
         background-color: #012E41;
+        font-weight: bold;
     }
     .fa-user {
         color:#FF6300
@@ -54,7 +56,13 @@
             <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Homepage Logo" class="img-fluid" style="max-width: 50px;">
         </a>
         {% if current_user.is_authenticated %}
+
         {% if current_user.role_id == 2 %}
+        <style>
+            .h5 {
+                font-weight: bold;
+            }
+        </style>
         <a href="{{ url_for('dashboard') }}" class="h5">Dashboard</a>
         <a href="{{ url_for('upload') }}" class="h5">Upload Prescription</a>
         <a href="{{ url_for('orders') }}" class="h5">Orders</a>
@@ -72,9 +80,14 @@
                 {% endif %}
             </div>
         {% else %}
+        <style>
+            .fa-user {
+        color:#FF6300
+            }
+        </style>
             <div class="right-align">
                 <a href="{{ url_for('register') }}">Register</a> |
-                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('login') }}"> <i class="fa fa-user"></i> Login</a>
             </div>
         {% endif %}
     </nav>
@@ -82,6 +95,7 @@
     <style>
         nav {
         background-color: #012E41;
+        font-weight: bold;
     }
     </style>
 
@@ -149,12 +163,25 @@
                     Get to know updates in the field of medicine <br> and know how often our stores are stocked
                 </p>
             </div>
-            <div class="subscription-form">
-                <form>
-                    <input type="email" id="email" name="email" placeholder="Your email address">
-                    <button type="submit">Subscribe</button>
+            <div class="subscription-form" id="subs-form">
+                <form onsubmit="event.preventDefault(); showPopup()"></form>
+                </form>       
+                    <input type="email" id="sub-email" name="email" placeholder="Your email address">
+                    <button type="" onclick="showPopup()">Subscribe</button>
                 </form>
             </div>
+
+            <div id="popup" style="display: none;">
+                <button>Thanks for subscribing!</button>
+            </div>
+
+            <script>
+                function showPopup() {
+                    document.getElementById("popup").style.display = "block";
+                    document.getElementById("sub-email").style.display = "none";
+                    document.getElementById("subs-form").style.display = "none";
+                }
+            </script>
         </div>
         <div class="second-container">
                 <div class="inner-cont-1">
