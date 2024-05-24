@@ -132,12 +132,25 @@
                     Get to know updates in the field of medicine <br> and know how often our stores are stocked
                 </p>
             </div>
-            <div class="subscription-form">
-                <form>
-                    <input type="email" id="email" name="email" placeholder="Your email address">
-                    <button type="submit">Subscribe</button>
+            <div class="subscription-form" id="subs-form">
+                <form onsubmit="event.preventDefault(); showPopup()"></form>
+             </form>       <input type="email" id="email" name="email" placeholder="Your email address">
+                    <button type="submit" onclick="showPopup()">Subscribe</button>
                 </form>
             </div>
+
+            <div id="popup" style="display: none;">
+                <button>Thanks for subscribing!</button>
+            </div>
+
+            <script>
+                function showPopup() {
+                    document.getElementById("popup").style.display = "block";
+                    document.getElementById("email").style.display = "none";
+                    document.querySelector("button[type='submit']").style.display = "none";
+                    document.getElementById("subs-form").style.display = "none";
+                }
+            </script>
         </div>
         <div class="second-container">
                 <div class="inner-cont-1">
