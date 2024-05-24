@@ -125,13 +125,13 @@
                         <li>We deliver within 24hrs of request</li>
                         <li>We gurantee speedily response</li>
                     </ul>
-                    <a href="{{ url_for('upload') }}">
-                    <button class="button">
-                        <div class="text">
-                            Get Prescription
-                        </div>
-                        <img src="{{ url_for('static', filename='images/right-arrow.svg') }}" alt="arrow inside button">
-                    </button>
+                    <a href="{{ url_for('upload') if current_user.is_authenticated else url_for('login') }}">
+                        <button class="button">
+                            <div class="text">
+                                Get Prescription
+                            </div>
+                            <img src="{{ url_for('static', filename='images/right-arrow.svg') }}" alt="arrow inside button">
+                        </button>
                     </a>
                 </div>
             </div>

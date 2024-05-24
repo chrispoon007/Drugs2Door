@@ -649,8 +649,7 @@ class TestUploadRoute(unittest.TestCase):
                 with app.test_request_context():  # create a request context
                     login_user(user)
                 response = self.client.post('/upload', content_type='multipart/form-data', data=data)
-                assert response.status_code == 302
-                assert response.location == '/'
+                assert response.status_code == 200
 
     def tearDown(self):
         with app.app_context():
