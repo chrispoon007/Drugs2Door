@@ -196,6 +196,35 @@ body {
     height: 50px; /* Adjust the height as needed */
     object-fit: cover; /* Ensures the image covers the specified dimensions */
 }
+
+.delivery-info {
+    text-align: center;
+    margin: 20px 0;
+}
+
+#timer {
+    font-size: 20px;
+    color: #f27825;
+}
+
+.status-bar img#new-order,
+.status-bar img#prescription-approved,
+.status-bar img#in-transit {
+    border: 3px solid #f27825;
+    border-radius: 50%;
+    padding: 5px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.status-bar img#in-transit {
+    animation: spin 2s linear infinite;
+}
+
+
 .past-history {
     margin: 20px 0;
 }
@@ -211,10 +240,4 @@ body {
 .past-history th {
     background-color: #f27825;
     color: white;
-}
-
-.status-bar img.status-image {
-    width: 50px; /* Adjust the width as needed */
-    height: 50px; /* Adjust the height as needed */
-    object-fit: cover; /* Ensures the image covers the specified dimensions */
 }
