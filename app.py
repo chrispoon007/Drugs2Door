@@ -16,6 +16,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timezone
 import os
 from collections import defaultdict
+import errno
 
 # Initialize Flask application
 app = Flask(__name__)
@@ -82,7 +83,17 @@ def upload():
         upload_time = datetime.now().strftime("%Y%m%d%H%M%S")  # get the current date and time
         extension = os.path.splitext(original_filename)[1]  # get the extension from the original filename
         filename = f"{upload_time}_{uploader_name}{extension}"  # prepend the uploader's name and upload time to the filename and append the extension
-        f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if not os.path.exists(os.path.dirname(upload_path)):
+            try:
+                os.makedirs(os.path.dirname(upload_path))
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+
+        f.save(upload_path)
+
         # Create a new order for the current user
         order = Order(user_id=current_user.id)
 
@@ -98,7 +109,6 @@ def upload():
         db.session.commit()
 
         flash('Your file has been uploaded and is awaiting approval.', 'success')
-        return redirect(url_for('home'))
 
     return render_template('upload.html', form=form, filename=filename)
 
@@ -252,7 +262,7 @@ def get_deny_reason():
     if order_id is None:
         return jsonify({'success': False, 'error': 'No orderId provided'}), 400
 
-    drug_order = DrugOrder.query.get(DrugOrder, order_id)
+    drug_order = db.session.get(DrugOrder, order_id)
 
     if drug_order is None:
         return jsonify({'success': False, 'error': 'No order found with this id'}), 404

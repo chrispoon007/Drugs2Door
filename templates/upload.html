@@ -40,10 +40,6 @@
         <div class="d-flex justify-content-center mb-4">
           <img src="{{ url_for('uploaded_file', filename=filename) }}" alt="Uploaded Image" style="width: 400px; height: 400px;">
         </div>
-        <div class="d-flex justify-content-center mb-3">
-          <button class="btn btn-secondary" type="button" style="margin-right: 15px;" onclick="window.location.href='{{ url_for('upload') }}'">Reupload</button>
-          <button class="btn btn-primary" type="submit">Submit</button>
-        </div>
         {% else %}
         <div class="mb-3">
           {{ form.file.label(class="form-label") }}
