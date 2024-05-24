@@ -48,6 +48,9 @@
     .fa-question-circle {
         color:#FF6300
     }
+    body {
+        background-color: #feffe6;
+    }
 </style>
 {% endif %}
 <body>
@@ -102,6 +105,10 @@
         nav {
         background-color: #012E41;
         font-weight: bold;
+        
+    }
+    body {
+        background-color: #feffe6;
     }
     </style>
 
@@ -118,12 +125,14 @@
                         <li>We deliver within 24hrs of request</li>
                         <li>We gurantee speedily response</li>
                     </ul>
+                    <a href="{{ url_for('upload') }}">
                     <button class="button">
                         <div class="text">
                             Get Prescription
                         </div>
                         <img src="{{ url_for('static', filename='images/right-arrow.svg') }}" alt="arrow inside button">
                     </button>
+                    </a>
                 </div>
             </div>
             <div class="third-wrapper">
@@ -134,12 +143,14 @@
                         <li>24/7 Chat Box</li>
                         <li>Get Notified</li>
                     </ul>
+                    <a href="/support">
                     <button class="button">
                         <div class="text">
                             Talk to a Pharmacist
                         </div>
                         <img src="{{ url_for('static', filename='images/right-arrow.svg') }}" alt="">
                     </button>
+                    </a>
                 </div>
                 <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/main-2.svg') }}" alt="pharmacist handing over paperwork" class="vector"></a>
             </div>

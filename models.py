@@ -92,6 +92,7 @@ class DrugOrder(db.Model):
   date_delivered = db.Column(DateTime)
   prescription_approved = db.Column(Boolean)  # NULL: not approved yet, True: approved, False: denied
   refills = db.Column(db.Integer, default=0)
+  denyreason = db.Column(db.String(255), nullable=True)
   drug = relationship('Drug', back_populates='items')
   order = relationship('Order', back_populates='items')
   image_file = db.Column(db.String(120), nullable=True)
@@ -107,5 +108,7 @@ class DrugOrder(db.Model):
       "date_delivered": self.date_delivered,
       "prescription_approved": self.prescription_approved,
       "refills": self.refills,
+      "denyreason": self.denyreason,
       "image_file": self.image_file,
+      "paid": self.paid,
     }

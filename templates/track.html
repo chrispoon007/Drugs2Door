@@ -1,42 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Orders</h2>
-<!-- Add your content here -->
-<body>
-    <link rel="stylesheet" href="../static/css/styles.css">
     <div class="header">
-        <h1>Order Tracking</h1>
+        <h1>Tracking for Order {{ order_id }}</h1>
     </div>
     <div class="container">
-        <h2>Track Your Order: <a href="#">P002</a></h2>
-        <div class="tracking-info">
+        <div class="tracking-info text-center">
             <div>Status: In Transit</div>
             <div>Shipping By: Canada Post</div>
-            <div>Tracking ID: <a href="#">TRCKG002</a></div>
+            <div>Tracking ID: <a href="#">TRCKG0020019872</a></div>
             <div>Estimated Delivery Date: May 5th, 2024</div>
         </div>
-        <div class="status-bar">
-            <div>
-                <img src=">new_order.png>" alt="New Order">
-                <p>New Order</p>
-            </div>
-            <div>
-                <img src=">prescription_approved.png>" alt="Prescription Approved">
-                <p>Prescription Approved</p>
-            </div>
-            <div>
-                <img src=">in_transit.png>" alt="In Transit">
-                <p>In Transit</p>
-            </div>
-            <div>
-                <img src=">delivered.png>" alt="Prescription Delivered">
-                <p>Prescription Delivered</p>
-            </div>
-        </div>
-        <h3>Past History</h3>
+        <div class="mt-5 text-center">
+        <h3>History</h3>
+    </div>
         <div class="past-history">
-            <table>
+            <table class="mb-3">
                 <tr>
                     <th>Date</th>
                     <th>Event</th>
@@ -51,13 +30,11 @@
                 </tr>
                 <tr>
                     <td>2024-05-04, 10:20 AM</td>
-                    <td>Order Shipped, Canada Post Tracking Number <a href="#">TRCKG002</a></td>
+                    <td>Order Shipped, Canada Post Tracking Number <a href="#">TRCKG0020019872</a></td>
                 </tr>
             </table>
         </div>
     </div>
 </body>
-</html>
-
 
 {% endblock %}

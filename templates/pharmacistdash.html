@@ -186,6 +186,86 @@
     </ul>
   </div>
 
+<!-- Denied Orders -->
+<h2>Denied Orders</h2>
+<table class="table" id="deniedTable">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Name</th>
+            <th scope="col">Email</th>
+            <th scope="col">PHN</th>
+            <th scope="col">Drug</th>
+            <th scope="col">Quantity</th>
+            <th scope="col">Date Ordered</th>
+            <th scope="col">Prescription</th>
+            <th scope="col">Status</th>
+            <th scope="col">Deny Reason</th>
+            <th scope="col">Review Order</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for order in denied_orders %}
+            <tr>
+                <th scope="row">{{ order.id }}</th>
+                <td>{{ order.user.name }}</td>
+                <td>{{ order.user.email }}</td>
+                <td>{{ order.user.phn }}</td>
+                <td>
+                    {% for item in order.items %}
+                        {% if not item.prescription_approved %}
+                            {{ item.drug.name }}<br>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% for item in order.items %}
+                        {% if not item.prescription_approved %}
+                            {{ item.quantity }}<br>
+                        {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    {% if order.items|length > 0 %}
+                        {{ order.items[0].date_ordered.strftime('%Y-%m-%d %H:%M:%S') }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if order.items|length > 0 %}
+                        {% if order.items[0].image_file %}
+                            <div style="text-align: center;">
+                                <img src="{{ url_for('uploaded_file', filename=order.items[0].image_file) }}" alt="Prescription Image" style="width: 100px; height: auto; cursor: pointer;" onclick="showImage(this)">
+                            </div>
+                        {% else %}
+                            No Image Found
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td>Denied</td>
+                <td>{{ order.denyreason }}</td>
+                <td><a href="{{ url_for('review_order', order_id=order.id) }}">Review</a></td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+<div aria-label="Page navigation for denied orders">
+    <ul class="pagination justify-content-center">
+      {% if denied_orders.has_prev %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('pharmacistdash', page_denied=page_denied-1, page_approved=page_approved, page_unapproved=page_unapproved) }}">Previous</a>
+        </li>
+      {% endif %}
+      <li class="page-item disabled">
+        <span class="page-link">Page {{ page_denied }}</span>
+      </li>
+      {% if denied_orders.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('pharmacistdash', page_denied=page_denied+1, page_approved=page_approved, page_unapproved=page_unapproved) }}">Next</a>
+        </li>
+      {% endif %}
+    </ul>
+</div>
+
 <script>
 $(document).ready(function(){
     attachPageLinkHandler();
