@@ -1,19 +1,87 @@
 {% extends "base.html" %}
 
 {% block content %}
+
+<!-- Add your content here -->
+<body>
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Set Date
+            var countDownDate = new Date("May 31, 2024 00:00:00").getTime();
+        
+            // Count down every 1 second
+            var x = setInterval(function() {
+        
+                // Today's date and time
+                var now = new Date().getTime();
+        
+                // Find the distance between today and countdown date
+                var distance = countDownDate - now;
+        
+                // Time calculations for days, hours, minutes and seconds
+                var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+        
+                // Output the result in an element with id="countdown"
+                document.getElementById("countdown").innerHTML = days + "d " + hours + "h "
+                + minutes + "m " + seconds + "s ";
+        
+                // If the count down is over, write some text 
+                if (distance < 0) {
+                    clearInterval(x);
+                    document.getElementById("countdown").innerHTML = "Your Order has Arrived";
+                }
+            }, 1000);
+        });
+        </script>
+
+
+    <link rel="stylesheet" href="../static/css/track.css">
+
     <div class="header">
         <h1>Tracking for Order {{ order_id }}</h1>
     </div>
+
+    <div class="back-to-orders">
+        <a href="orders"> <- Back to Orders</a>
+    </div>
+
     <div class="container">
         <div class="tracking-info text-center">
             <div>Status: In Transit</div>
             <div>Shipping By: Canada Post</div>
-            <div>Tracking ID: <a href="#">TRCKG0020019872</a></div>
-            <div>Estimated Delivery Date: May 5th, 2024</div>
+            <div>Tracking ID: <a href="#">TRCKG002</a></div>
         </div>
-        <div class="mt-5 text-center">
-        <h3>History</h3>
-    </div>
+
+        <div class="delivery-info">
+            <p>Estimated Delivery Date: May 31th, 2024</p>
+            <div id="timer">
+                <p id="countdown"></p>
+            </div>
+        </div>
+
+        <div class="status-bar">
+            <div class="completed">
+                <img src="{{ url_for('static', filename='image/pills_image.jpg') }}" id="new-order" class="status-image">
+                <p>New Order</p>
+            </div>
+            <div class="completed">
+                <img src="{{ url_for('static', filename='image/approval_image.jpg') }}" id="prescription-approved" class="status-image">
+                <p>Prescription Approved</p>
+            </div>
+            <div class="completed">
+                <img src="{{ url_for('static', filename='image/truck_image.jpg') }}" id="in-transit" class="status-image">
+                <p>In Transit</p>
+            </div>
+            <div>
+                <img src="{{ url_for('static', filename='image/house_image.png') }}" id="prescription-delivered" class="status-image">
+                <p>Prescription Delivered</p>
+            </div>
+        </div>        
+        <h3>Past History</h3>
+
         <div class="past-history">
             <table class="mb-3">
                 <tr>
