@@ -12,6 +12,8 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
     
 </head>
 {% if request.endpoint != 'home' %}
@@ -34,6 +36,17 @@
     }
     .right-align {
         float: right;
+        font-weight: bold;
+    }
+    nav {
+        background-color: #012E41;
+        font-weight: bold;
+    }
+    .fa-user {
+        color:#FF6300
+    }
+    .fa-question-circle {
+        color:#FF6300
     }
 </style>
 {% endif %}
@@ -43,14 +56,20 @@
             <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Homepage Logo" class="img-fluid" style="max-width: 50px;">
         </a>
         {% if current_user.is_authenticated %}
+
         {% if current_user.role_id == 2 %}
+        <style>
+            .h5 {
+                font-weight: bold;
+            }
+        </style>
         <a href="{{ url_for('dashboard') }}" class="h5">Dashboard</a>
         <a href="{{ url_for('upload') }}" class="h5">Upload Prescription</a>
         <a href="{{ url_for('orders') }}" class="h5">Orders</a>
             <div class="right-align d-flex align-items-center my-auto">
-                <span>Welcome <a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
-                <a href="{{ url_for('support') }}">Support</a> |
-                <a href="{{ url_for('logout') }}">Logout</a>
+                <span>Welcome,<a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
+                <a href="{{ url_for('support') }}"><i class="fa fa-question-circle"></i> Support</a> |
+                <a href="{{ url_for('logout') }}"> <i class="fa fa-user"></i> Logout</a>
         {% elif current_user.role_id == 1 %}
         <a href="{{ url_for('dashboard') }}" class="h5">Pharmacist Dashboard</a>
         <a href="{{ url_for('pharmacistdash') }}" class="h5">All Orders</a>
@@ -61,13 +80,25 @@
                 {% endif %}
             </div>
         {% else %}
+        <style>
+            .fa-user {
+        color:#FF6300
+            }
+        </style>
             <div class="right-align">
                 <a href="{{ url_for('register') }}">Register</a> |
-                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('login') }}"> <i class="fa fa-user"></i> Login</a>
             </div>
         {% endif %}
     </nav>
     {% if request.endpoint == 'home' %}
+    <style>
+        nav {
+        background-color: #012E41;
+        font-weight: bold;
+    }
+    </style>
+
         <div class="wrapper">
             <div class="first-wrapper">
                 <h1> Your Dose Delivered, Stat!</h1>
