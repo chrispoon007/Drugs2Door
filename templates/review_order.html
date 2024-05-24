@@ -31,7 +31,8 @@
                 <div class="drug-group row">
                   <div class="form-group col-md-6">
                     <label for="drug_name">Drug Name:</label>
-                    <select name="drug_orders-{{ drug_order.id }}-name" class="form-control" required>
+                    <select name="drug_orders-{{ drug_order.id }}-name" class="form-control">
+                      <option value="">No Drug Selected</option>
                       {% for drug in drugs|sort(attribute='name') %}
                         <option value="{{ drug.name }}" {% if drug.name == drug_order.drug.name %} selected {% endif %}>
                           {{ drug.name }}
@@ -42,7 +43,7 @@
               
                   <div class="form-group col-md-3">
                     <label for="quantity">Quantity:</label>
-                    <input type="number" name="drug_orders-{{ drug_order.id }}-quantity" value="{{ drug_order.quantity }}" min="0" class="form-control" required>
+                    <input type="number" name="drug_orders-{{ drug_order.id }}-quantity" value="{{ drug_order.quantity }}" min="0" class="form-control">
                   </div>
                   
                   <div class="form-group col-md-3">
@@ -64,6 +65,10 @@
               <option value="approved">Approve</option>
               <option value="denied">Deny</option>
             </select>
+          </div>
+          <div class="form-group" id="denyReasonContainer" style="display: none;">
+            <label for="denyReason">Deny Reason:</label>
+            <textarea id="denyReason" name="denyReason" class="form-control" required></textarea>
           </div>
           <div class="form-group text-center">
           <button type="submit" class="btn btn-primary">Submit</button>
@@ -217,6 +222,42 @@
       overlay.appendChild(largeImage);
       document.body.appendChild(overlay);
     }
+
+window.onload = function() {
+  var statusSelect = document.getElementById('status');
+  var denyReasonContainer = document.getElementById('denyReasonContainer');
+  var denyReason = document.getElementById('denyReason');
+  var drugNameSelects = document.querySelectorAll('select[name^="drug_orders-"]');
+  var quantityInputs = document.querySelectorAll('input[name^="drug_orders-"][name$="-quantity"]');
+
+  function handleStatusChange() {
+    if (statusSelect.value === 'denied') {
+      denyReasonContainer.style.display = 'block';
+      denyReason.required = true;
+      drugNameSelects.forEach(function(select) {
+        select.required = false;
+      });
+      quantityInputs.forEach(function(input) {
+        input.required = false;
+      });
+    } else {
+      denyReasonContainer.style.display = 'none';
+      denyReason.required = false;
+      drugNameSelects.forEach(function(select) {
+        select.required = true;
+      });
+      quantityInputs.forEach(function(input) {
+        input.required = true;
+      });
+    }
+  }
+
+  // Attach the event listener
+  statusSelect.addEventListener('change', handleStatusChange);
+
+  // Call the function on page load to set the initial state
+  handleStatusChange();
+};
   </script>
   
 {% endblock %}

@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+
 <!-- Add your content here -->
 <body>
     <script>
@@ -38,8 +39,9 @@
 
 
     <link rel="stylesheet" href="../static/css/track.css">
+
     <div class="header">
-        <h1>Order Tracking</h1>
+        <h1>Tracking for Order {{ order_id }}</h1>
     </div>
 
     <div class="back-to-orders">
@@ -47,8 +49,7 @@
     </div>
 
     <div class="container">
-        <h2>Track Your Order: <a href="#">P002</a></h2>
-        <div class="tracking-info">
+        <div class="tracking-info text-center">
             <div>Status: In Transit</div>
             <div>Shipping By: Canada Post</div>
             <div>Tracking ID: <a href="#">TRCKG002</a></div>
@@ -80,8 +81,9 @@
             </div>
         </div>        
         <h3>Past History</h3>
+
         <div class="past-history">
-            <table>
+            <table class="mb-3">
                 <tr>
                     <th>Date</th>
                     <th>Event</th>
@@ -96,13 +98,11 @@
                 </tr>
                 <tr>
                     <td>2024-05-04, 10:20 AM</td>
-                    <td>Order Shipped, Canada Post Tracking Number <a href="#">TRCKG002</a></td>
+                    <td>Order Shipped, Canada Post Tracking Number <a href="#">TRCKG0020019872</a></td>
                 </tr>
             </table>
         </div>
     </div>
 </body>
-</html>
-
 
 {% endblock %}

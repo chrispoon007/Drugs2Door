@@ -3,7 +3,8 @@ from pathlib import Path
 from db import db
 from models import Drug, Order, DrugOrder, User
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func, desc, distinct
+from sqlalchemy import func, desc, distinct, create_engine
+from sqlalchemy.orm import Session
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import DataRequired, Email, EqualTo
@@ -15,6 +16,7 @@ from werkzeug.utils import secure_filename
 from datetime import datetime, timezone
 import os
 from collections import defaultdict
+import errno
 
 # Initialize Flask application
 app = Flask(__name__)
@@ -31,7 +33,6 @@ app.config["SECRET_KEY"] = '12345678901'
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
 
 # Registration form
 @app.route("/register", methods=['GET', 'POST'])
@@ -82,7 +83,17 @@ def upload():
         upload_time = datetime.now().strftime("%Y%m%d%H%M%S")  # get the current date and time
         extension = os.path.splitext(original_filename)[1]  # get the extension from the original filename
         filename = f"{upload_time}_{uploader_name}{extension}"  # prepend the uploader's name and upload time to the filename and append the extension
-        f.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+        upload_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        if not os.path.exists(os.path.dirname(upload_path)):
+            try:
+                os.makedirs(os.path.dirname(upload_path))
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
+
+        f.save(upload_path)
+
         # Create a new order for the current user
         order = Order(user_id=current_user.id)
 
@@ -98,7 +109,6 @@ def upload():
         db.session.commit()
 
         flash('Your file has been uploaded and is awaiting approval.', 'success')
-        return redirect(url_for('home'))
 
     return render_template('upload.html', form=form, filename=filename)
 
@@ -112,14 +122,18 @@ def uploaded_file(filename):
 def pharmacistdash():
     page_unapproved = request.args.get('page_unapproved', 1, type=int)
     page_approved = request.args.get('page_approved', 1, type=int)
+    page_denied = request.args.get('page_denied', 1, type=int)
     per_page = 10
     if current_user.role_id != 1:
         flash('You do not have access to this page.', 'danger')
         return redirect(url_for('home'))
 
-    # Fetch approved and unapproved orders from the database
+    # Fetch approved, unapproved, and denied orders from the database
     approved_orders = db.session.query(Order).join(DrugOrder, Order.id == DrugOrder.order_id).filter(DrugOrder.prescription_approved == True).group_by(Order.id).order_by(DrugOrder.date_ordered.desc()).paginate(page=page_approved, per_page=per_page, error_out=False)
     unapproved_prescriptions = db.session.query(Order).join(DrugOrder, Order.id == DrugOrder.order_id).filter(DrugOrder.prescription_approved == None).group_by(Order.id).order_by(DrugOrder.date_ordered.desc()).paginate(page=page_unapproved, per_page=per_page, error_out=False)
+    
+    denied_orders_query = db.session.query(Order, DrugOrder.denyreason).join(DrugOrder, Order.id == DrugOrder.order_id).filter(DrugOrder.prescription_approved == False).group_by(Order.id).order_by(DrugOrder.date_ordered.desc()).paginate(page=page_denied, per_page=per_page, error_out=False)
+    denied_orders = [setattr(order, 'denyreason', denyreason) or order for order, denyreason in denied_orders_query.items]
     
     # Group by drugorder id and calculate the total quantity for each drugorder
     drug_orders = db.session.query(
@@ -128,7 +142,7 @@ def pharmacistdash():
     ).group_by(DrugOrder.id).all()
 
     # Pass the sorted lists and drug orders to the template
-    return render_template('pharmacistdash.html', unapproved_prescriptions=unapproved_prescriptions, approved_orders=approved_orders, drug_orders=drug_orders, page_unapproved=page_unapproved, page_approved=page_approved)
+    return render_template('pharmacistdash.html', unapproved_prescriptions=unapproved_prescriptions, approved_orders=approved_orders, denied_orders=denied_orders, drug_orders=drug_orders, page_unapproved=page_unapproved, page_approved=page_approved, page_denied=page_denied)
 
 
 @app.route('/review_order/<int:order_id>', methods=['GET', 'POST'])
@@ -145,12 +159,10 @@ def review_order(order_id):
 
     # Check if the form is submitted
     if request.method == 'POST':
+
         # Update the order status based on the form data
         status = request.form.get('status')
-        if status == 'approved':
-            print('approved')
-        elif status == 'denied':
-            print('denied')
+        deny_reason = request.form.get('denyReason')  # Get the deny reason from the form data
 
         # Create a dictionary to store the drug orders by index
         drug_orders = {}
@@ -159,25 +171,30 @@ def review_order(order_id):
         for key in request.form:
             # Check if the key starts with 'drug_orders-' which indicates it's a drug order field
             if key.startswith('drug_orders-'):
-                # Extract the index, field name and value
-                _, index, field = key.split('-')
-                index = int(index)  # Convert index to integer
+                # Extract the drug_order_id, field name and value
+                _, drug_order_id, field = key.split('-')
+                drug_order_id = int(drug_order_id)  # Convert drug_order_id to integer
                 value = request.form[key]
 
-                print(f"Processing field '{field}' with value '{value}' for drug order {index}")
+                # If the field is 'quantity', only convert to int if value is not an empty string
+                if field == 'quantity':
+                    if value != '':
+                        value = int(value)
+                    else:
+                        value = None
 
-                # Get the drug order for this index
-                if index not in drug_orders:
+                # Get the drug order for this drug_order_id
+                if drug_order_id not in drug_orders:
                     # Check if this is a new drug order or an existing one
-                    existing_order = db.session.get(DrugOrder, index)
+                    existing_order = db.session.get(DrugOrder, drug_order_id)
                     if existing_order is not None:
                         # This is an existing drug order, so use it
-                        drug_orders[index] = existing_order
+                        drug_orders[drug_order_id] = existing_order
                     else:
                         # This is a new drug order, so create a new DrugOrder instance
-                        drug_orders[index] = DrugOrder(order_id=order_id, date_ordered=datetime.now(timezone.utc))
+                        drug_orders[drug_order_id] = DrugOrder(order_id=order_id, date_ordered=datetime.now(timezone.utc))
 
-                drug_order = drug_orders[index]
+                drug_order = drug_orders[drug_order_id]
 
                 # Update the corresponding field
                 if field == 'name':
@@ -191,16 +208,18 @@ def review_order(order_id):
                         drug = Drug.query.filter_by(name=value).first()
                         if drug is not None:
                             drug_order.drug_id = drug.id
-                elif field == 'quantity':
+                elif field == 'quantity' and value is not None:
                     drug_order.quantity = int(value)
                 elif field == 'refills':
                     drug_order.refills = int(value)
 
-                # Update the prescription_approved status
+                # Update the prescription_approved status and deny reason
                 if status == 'approved':
                     drug_order.prescription_approved = True
+                    drug_order.denyreason = None  # Clear the deny reason if the order is approved
                 elif status == 'denied':
                     drug_order.prescription_approved = False
+                    drug_order.denyreason = deny_reason  # Set the deny reason if the order is denied
 
         # Add all new drug orders to the session
         for drug_order in drug_orders.values():
@@ -220,16 +239,10 @@ def review_order(order_id):
     drugs = Drug.query.all()
     return render_template('review_order.html', order=order, drug_orders=drug_orders, drugs=drugs, drug_order=drug_order)
 
-# Prescription History route
-@app.route("/history")
-def history():
-    # Logic to fetch and display the prescription history
-    # This will depend on how you're storing prescriptions
-    return render_template("history.html")
-
 @app.route('/track', methods=['GET'])
 def track():
-    return render_template('track.html')
+    order_id = request.args.get('order_id', default = 1, type = int)
+    return render_template('track.html', order_id=order_id)
 
 # Function to calculate total payment
 def calculate_total_payment(order):
@@ -240,6 +253,21 @@ def calculate_total_payment(order):
 def orders():
     orders = Order.query.filter_by(user_id=current_user.id).join(DrugOrder).order_by(DrugOrder.date_ordered.desc()).all()
     return render_template('orders.html', orders=orders, calculate_total_payment=calculate_total_payment)
+
+@app.route('/getDenyReason', methods=['POST'])
+def get_deny_reason():
+    data = request.get_json()
+    order_id = data.get('orderId')
+
+    if order_id is None:
+        return jsonify({'success': False, 'error': 'No orderId provided'}), 400
+
+    drug_order = db.session.get(DrugOrder, order_id)
+
+    if drug_order is None:
+        return jsonify({'success': False, 'error': 'No order found with this id'}), 404
+
+    return jsonify({'success': True, 'denyReason': drug_order.denyreason})
 
 @app.route('/pay', methods=['POST'])
 def pay():
@@ -335,25 +363,36 @@ ns = Namespace()
 @app.route("/dashboard")
 def dashboard():
     total_unapproved_count = 0  # Define total_unapproved_count here
+    denied_count = 0  # Define denied_count here
+    unpaid_approved_count = 0  # Define unpaid_approved_count here
     if current_user.is_authenticated:
         if current_user.role_id == 1:  # if the user is a pharmacist
             # Fetch all unique order_ids where prescription_approved is None
             drugorders = DrugOrder.query.filter(DrugOrder.prescription_approved == None).all()
             unique_order_ids = DrugOrder.query.with_entities(distinct(DrugOrder.order_id)).filter(DrugOrder.prescription_approved == None).all()
             total_unapproved_count = len(unique_order_ids)  # Update total_unapproved_count here
+
         else:  # for other users
             orders = Order.query.filter_by(user_id=current_user.id).all()
             drugorders = [drugorder for order in orders for drugorder in order.items]
-            unique_unpaid_approved_order_ids = list(set([drugorder.order_id for drugorder in drugorders if drugorder.prescription_approved == True and drugorder.paid == False]))
+            unpaid_approved_count = db.session.query(DrugOrder.order_id).join(Order).filter(
+                DrugOrder.prescription_approved == True,
+                DrugOrder.paid == False,
+                Order.user_id == current_user.id
+            ).distinct().count()
             unique_unapproved_order_ids = list(set([drugorder.order_id for drugorder in drugorders if drugorder.prescription_approved == None]))
 
             # Count the number of unique unpaid approved and unapproved prescriptions
-            ns.unpaid_approved_count = len(unique_unpaid_approved_order_ids)
             total_unapproved_count = len(unique_unapproved_order_ids)  # Update total_unapproved_count here
 
-        return render_template('dashboard.html', title='Dashboard', name=current_user.name, email=current_user.email, drugorders=drugorders, unpaid_approved_count=ns.unpaid_approved_count, total_unapproved_count=total_unapproved_count)
+            # Count the number of unique denied prescriptions
+            unique_denied_order_ids = list(set([drugorder.order_id for drugorder in drugorders if drugorder.prescription_approved == False]))
+            denied_count = len(unique_denied_order_ids)  # Update denied_count here
+
+        return render_template('dashboard.html', title='Dashboard', name=current_user.name, email=current_user.email, drugorders=drugorders, unpaid_approved_count=unpaid_approved_count, total_unapproved_count=total_unapproved_count, denied_count=denied_count)
     else:
         return redirect(url_for('login'))
+    
 # User details route
 def format_phone(phone):
     if phone is None:
@@ -367,10 +406,10 @@ def format_phone(phone):
 def userdetails():
     form = UserUpdateForm()
 
-    if form.validate_on_submit():
+    if form.validate_on_submit(): # pragma: no cover
         if bcrypt.check_password_hash(current_user.password, form.current_password.data):
             current_user.address = form.address.data
-            current_user.phn = form.phn.data  # update PHN
+            current_user.phn = form.phn.data
 
             # Format phone number with dashes
             current_user.phone = format_phone(form.phone.data)
