@@ -4,14 +4,13 @@
 <style>
     .form-container {
         display: flex;
-        flex-direction: column;
-        justify-content: center;
+        flex-direction: row;
+        justify-content: space-around;
         align-items: center;
         margin-top: 50px;
         border: 1px solid #ccc;
         padding: 20px;
-        width: 350px;
-        margin: 0 auto;
+        margin-bottom: 100px;
     }
     .form-field {
         margin: 10px 0;
@@ -35,6 +34,8 @@
 
 <h2 style="text-align: center;">Login</h2>
 <div class="form-container">
+    <a href="{{ url_for('login') }}"><img src="{{ url_for('static', filename='images/Login-Vector.svg') }}" alt="" class="vector"></a>
+
     <form method="POST">
         {{ form.hidden_tag() }}
         <div class="form-field">
