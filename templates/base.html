@@ -11,6 +11,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
     
 </head>
 {% if request.endpoint != 'home' %}
@@ -33,6 +36,17 @@
     }
     .right-align {
         float: right;
+        font-weight: bold;
+    }
+    nav {
+        background-color: #012E41;
+        font-weight: bold;
+    }
+    .fa-user {
+        color:#FF6300
+    }
+    .fa-question-circle {
+        color:#FF6300
     }
 </style>
 {% endif %}
@@ -42,14 +56,20 @@
             <img src="{{ url_for('static', filename='images/logo2.png') }}" alt="Homepage Logo" class="img-fluid" style="max-width: 50px;">
         </a>
         {% if current_user.is_authenticated %}
+
         {% if current_user.role_id == 2 %}
+        <style>
+            .h5 {
+                font-weight: bold;
+            }
+        </style>
         <a href="{{ url_for('dashboard') }}" class="h5">Dashboard</a>
         <a href="{{ url_for('upload') }}" class="h5">Upload Prescription</a>
         <a href="{{ url_for('orders') }}" class="h5">Orders</a>
             <div class="right-align d-flex align-items-center my-auto">
-                <span>Welcome <a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
-                <a href="{{ url_for('support') }}">Support</a> |
-                <a href="{{ url_for('logout') }}">Logout</a>
+                <span>Welcome,<a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
+                <a href="{{ url_for('support') }}"><i class="fa fa-question-circle"></i> Support</a> |
+                <a href="{{ url_for('logout') }}"> <i class="fa fa-user"></i> Logout</a>
         {% elif current_user.role_id == 1 %}
         <a href="{{ url_for('dashboard') }}" class="h5">Pharmacist Dashboard</a>
         <a href="{{ url_for('pharmacistdash') }}" class="h5">All Orders</a>
@@ -60,16 +80,68 @@
                 {% endif %}
             </div>
         {% else %}
+        <style>
+            .fa-user {
+        color:#FF6300
+            }
+        </style>
             <div class="right-align">
                 <a href="{{ url_for('register') }}">Register</a> |
-                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('login') }}"> <i class="fa fa-user"></i> Login</a>
             </div>
         {% endif %}
     </nav>
     {% if request.endpoint == 'home' %}
-        <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Drugs2Door Logo" class="logo"></a> 
-        <h1> Welcome to Drugs2Door!</h1>
-        <h2> Your Dose Delivered, Stat!</h2>
+    <style>
+        nav {
+        background-color: #012E41;
+        font-weight: bold;
+    }
+    </style>
+
+        <div class="wrapper">
+            <div class="first-wrapper">
+                <h1> Your Dose Delivered, Stat!</h1>
+            </div>
+            <div class="second-wrapper">
+                <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/main-1.svg') }}" alt="pharmacist handing over paperwork" class="vector"></a>
+                <div>
+                    <h4>Get your drugs at your doorstep</h4>
+                    <ul>
+                        <li>Get straight delivery to the doorstep</li>
+                        <li>We deliver within 24hrs of request</li>
+                        <li>We gurantee speedily response</li>
+                    </ul>
+                    <a href="{{ url_for('upload') if current_user.is_authenticated else url_for('login') }}">
+                        <button class="button">
+                            <div class="text">
+                                Get Prescription
+                            </div>
+                            <img src="{{ url_for('static', filename='images/right-arrow.svg') }}" alt="arrow inside button">
+                        </button>
+                    </a>
+                </div>
+            </div>
+            <div class="third-wrapper">
+                <div>
+                    <h4>Chat with Pharmacists</h4>
+                    <ul>
+                        <li>Easily Refill</li>
+                        <li>24/7 Chat Box</li>
+                        <li>Get Notified</li>
+                    </ul>
+                    <a href="/support">
+                    <button class="button">
+                        <div class="text">
+                            Talk to a Pharmacist
+                        </div>
+                        <img src="{{ url_for('static', filename='images/right-arrow.svg') }}" alt="">
+                    </button>
+                    </a>
+                </div>
+                <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/main-2.svg') }}" alt="pharmacist handing over paperwork" class="vector"></a>
+            </div>
+        </div>
     {% else %}
         <div class="header">
             <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Drugs2Door Logo" class="logo"></a>   
@@ -87,21 +159,51 @@
     {% endif %}
 {% endwith %}
     {% block content %}{% endblock %}
-        <footer class="footer">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <p>Privacy Policy</p>
-                    <p>Terms of Service</p>
-                </div>
-                <div class="col-md-4">
-                    <p>555 Seymour Street, Vancouver, BC, Canada</p>
-                    <p>Phone: (604) 456-7890</p>
-                </div>
-                <div class="col-md-4">
-                    <p>&copy; 2024 Drugs2Door. All rights reserved.</p>
-                </div>
+    <footer class="foot">
+        <div class="f-cont">
+            <div class="signup">
+                <h4>Sign up for our Newsletter</h4>
+                <p>
+                    Get to know updates in the field of medicine <br> and know how often our stores are stocked
+                </p>
             </div>
+            <div class="subscription-form" id="subs-form">
+                <form onsubmit="event.preventDefault(); showPopup()"></form>
+                </form>       
+                    <input type="email" id="sub-email" name="email" placeholder="Your email address">
+                    <button type="" onclick="showPopup()">Subscribe</button>
+                </form>
+            </div>
+
+            <div id="popup" style="display: none;">
+                <button>Thanks for subscribing!</button>
+            </div>
+
+            <script>
+                function showPopup() {
+                    document.getElementById("popup").style.display = "block";
+                    document.getElementById("sub-email").style.display = "none";
+                    document.getElementById("subs-form").style.display = "none";
+                }
+            </script>
+        </div>
+        <div class="second-container">
+                <div class="inner-cont-1">
+                    <h5>Drugs2Door</h5>
+                    <p>
+                        Your favourite online pharmacy store. We offer onsite delivery and your health is our priority
+                    </p>
+                </div>
+                <div class="inner-cont-2">
+                    <h5>Quick Links</h5>
+                    <h6>Contact Us</h6>
+                    <h6>About Us</h6>
+                    <h6>Privacy Policy</h6>
+                </div>
+                <div class="inner-cont-3">
+                    <p>&copy; 2024 Drugs2Door. All rights reserved.</p>
+                    <h6>Terms Of Service</h6>
+                </div>
         </div>
     </footer>
 </body>
