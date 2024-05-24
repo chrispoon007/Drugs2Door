@@ -5,16 +5,16 @@
 <body>
     <script>
         document.addEventListener('DOMContentLoaded', (event) => {
-            // Set the date we're counting down to
+            // Set Date
             var countDownDate = new Date("May 31, 2024 00:00:00").getTime();
         
-            // Update the count down every 1 second
+            // Count down every 1 second
             var x = setInterval(function() {
         
-                // Get today's date and time
+                // Today's date and time
                 var now = new Date().getTime();
         
-                // Find the distance between now and the count down date
+                // Find the distance between today and countdown date
                 var distance = countDownDate - now;
         
                 // Time calculations for days, hours, minutes and seconds
@@ -30,14 +30,14 @@
                 // If the count down is over, write some text 
                 if (distance < 0) {
                     clearInterval(x);
-                    document.getElementById("countdown").innerHTML = "Arrived";
+                    document.getElementById("countdown").innerHTML = "Your Order has Arrived";
                 }
             }, 1000);
         });
         </script>
 
 
-    <link rel="stylesheet" href="../static/css/styles.css">
+    <link rel="stylesheet" href="../static/css/track.css">
     <div class="header">
         <h1>Order Tracking</h1>
     </div>
