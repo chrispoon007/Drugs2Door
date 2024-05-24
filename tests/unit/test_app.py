@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 import io
 import os
 from sqlalchemy.orm import session
+from sqlalchemy import func
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
 from forms import UserUpdateForm, SupportForm, LoginForm
@@ -497,11 +498,16 @@ class TestSupportAndLoginRoutes(unittest.TestCase):
         app.config['TESTING'] = True
         app.config['WTF_CSRF_ENABLED'] = False
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://'
-        app.config['SERVER_NAME'] = 'localhost:5000'  # Add this line
+        app.config['SERVER_NAME'] = 'localhost:5000'
         self.client = app.test_client()
         self.app_context = app.app_context()
         self.app_context.push()
         db.create_all()
+
+        # Create a test user
+        test_user = User(name='Existing User', email='existinguser@test.com', password='Testpassword1!', phn='1234567210')
+        db.session.add(test_user)
+        db.session.commit()
 
     def tearDown(self):
         db.session.remove()
@@ -510,28 +516,75 @@ class TestSupportAndLoginRoutes(unittest.TestCase):
 
     @patch('forms.SupportForm')
     def test_support(self, mock_form):
-        # Mocking the form data
         mock_form.validate_on_submit.return_value = True
-
-        # Call the function to test GET method
         response = self.client.get('/support')
         assert response.status_code == 200
-
-        # Call the function to test POST method
-        response = self.client.post('/support', data=dict(
-            # Add your form data here
-        ), follow_redirects=True)
-
+        response = self.client.post('/support', data=dict(), follow_redirects=True)
         assert response.status_code == 200
 
+    @patch('forms.RegistrationForm')
+    @patch('models.User.query.filter')
+    @patch('models.User.query.filter_by')
+    def test_user_creation(self, mock_filter_by, mock_filter, mock_form):
+        mock_form.validate_on_submit.return_value = True
+        mock_form.name.data = 'testuser'
+        mock_form.email.data = 'testuser@test.com'
+        mock_form.phn.data = '1234567890'
+        mock_form.password.data = 'testpassword'
+        mock_filter.return_value.first.return_value = None
+        mock_filter_by.return_value.first.return_value = None
+        response = self.client.post('/register', data=dict(
+            name='testuser',
+            email='testuser@test.com',
+            phn='1234567890',
+            password='testpassword'
+        ), follow_redirects=False)
+        assert response.status_code == 200 # 302 is the status code for a redirect
+
+    @patch('forms.RegistrationForm')
+    @patch('models.User.query.filter')
+    @patch('models.User.query.filter_by')
+    def test_user_creation_existing_email(self, mock_filter_by, mock_filter, mock_form):
+        # Setup
+        mock_form.name.data = 'testuser'
+        mock_form.email.data = 'existinguser@test.com'
+        mock_form.phn.data = '1234567890'
+        mock_form.password.data = 'Testpassword1!'
+        mock_form.confirm_password.data = 'Testpassword1!'
+        
+        # Create a mock user
+        mock_user = MagicMock()
+        mock_user.email = 'existinguser@test.com'
+        
+        mock_filter.return_value.first.return_value = mock_user
+        mock_filter_by.return_value.first.return_value = None
+
+        # Mock the func.lower function
+        mock_lower = MagicMock()
+        mock_lower.return_value = 'existinguser@test.com'
+        func.lower = mock_lower
+
+        # Exercise
+        response = self.client.post('/register', data=dict(
+            name='testuser',
+            email='existinguser@test.com',
+            phn='1234567890',
+            password='Testpassword1!',
+            confirm_password='Testpassword1!'
+        ), follow_redirects=True)
+
+        # Print the response data
+        print(response.data.decode('utf-8'))
+
+        # Verify
+        assert b'A user with this email already exists. Please log in or use a different email.' in response.data
+        
     def test_login(self):
         with self.app_context:
-            # Create a test user
             password = bcrypt.generate_password_hash('test_password').decode('utf-8')
             user = User(name='test', phn='1234567890', email='test@test.com', password=password)
             db.session.add(user)
             db.session.commit()
-
             response = self.client.post('/login', data={'email': 'test@test.com', 'password': 'test_password'}, follow_redirects=True)
             assert response.status_code == 200
             assert b'You have successfully logged in!' in response.data
@@ -540,15 +593,11 @@ class TestSupportAndLoginRoutes(unittest.TestCase):
 
     def test_logout(self):
         with self.app_context:
-            # Create a test user
             password = bcrypt.generate_password_hash('test_password').decode('utf-8')
             user = User(name='test', phn='1234567890', email='test@test.com', password=password)
             db.session.add(user)
             db.session.commit()
-
-            # Login the test user
             self.client.post('/login', data={'email': 'test@test.com', 'password': 'test_password'}, follow_redirects=True)
-
             response = self.client.get('/logout', follow_redirects=True)
             assert response.status_code == 200
             assert b'You have successfully logged out.' in response.data
@@ -558,26 +607,18 @@ class TestSupportAndLoginRoutes(unittest.TestCase):
     @patch('forms.LoginForm')
     @patch('models.User.query.filter')
     def test_login(self, mock_filter, mock_form):
-        # Mocking the form data
         mock_form.validate_on_submit.return_value = True
         mock_form.email.data = 'testuser@test.com'
         mock_form.password.data = 'testpassword'
-
-        # Mocking the user query
         mock_user = MagicMock()
         mock_user.password = bcrypt.generate_password_hash('testpassword').decode('utf-8')
         mock_filter.return_value.first.return_value = mock_user
-
-        # Call the function to test GET method
         response = self.client.get('/login')
         assert response.status_code == 200
-
-        # Call the function to test POST method
         response = self.client.post('/login', data=dict(
             email='testuser@test.com',
             password='testpassword'
         ), follow_redirects=True)
-
         assert response.status_code == 200
 
 if __name__ == '__main__':
@@ -662,4 +703,3 @@ class TestPayRoute:
 
             # Check that the DrugOrder is marked as paid
             assert db.session.get(DrugOrder, drug_order.id).paid == True
-    
