@@ -134,8 +134,9 @@
             </div>
             <div class="subscription-form" id="subs-form">
                 <form onsubmit="event.preventDefault(); showPopup()"></form>
-             </form>       <input type="email" id="email" name="email" placeholder="Your email address">
-                    <button type="submit" onclick="showPopup()">Subscribe</button>
+                </form>       
+                    <input type="email" id="sub-email" name="email" placeholder="Your email address">
+                    <button type="" onclick="showPopup()">Subscribe</button>
                 </form>
             </div>
 
@@ -146,8 +147,7 @@
             <script>
                 function showPopup() {
                     document.getElementById("popup").style.display = "block";
-                    document.getElementById("email").style.display = "none";
-                    document.querySelector("button[type='submit']").style.display = "none";
+                    document.getElementById("sub-email").style.display = "none";
                     document.getElementById("subs-form").style.display = "none";
                 }
             </script>
