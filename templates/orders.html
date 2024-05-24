@@ -21,7 +21,7 @@ td {
 
 {% if current_user.is_authenticated %}
   {% if current_user.orders %}
-    <table style="width: 50%; table-layout: auto;">
+    <table style="width: 90%; table-layout: auto;">
       <thead>
         <tr>
           <th>Order ID</th>
@@ -48,7 +48,7 @@ td {
             <tr>
                 {% if loop.first %}
                   <td rowspan="{{ order.items|length }}">{{ order.id }}</td>
-                  <td rowspan="{{ order.items|length }}">{{ drug_order.date_ordered.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                  <td rowspan="{{ order.items|length }}" td style="width: 125px;">{{ drug_order.date_ordered.strftime('%Y-%m-%d %H:%M:%S') }}</td>
                   {% if drug_order.prescription_approved %}
                     <td rowspan="{{ order.items|length }}">Yes</td>
                   {% else %}
@@ -58,12 +58,12 @@ td {
                         <button onclick="openDenyReasonModal({{ drug_order.id }}, this)">View Reason</button>
                       </td>
                     {% else %}
-                      <td rowspan="{{ order.items|length }}">Not Approved Yet</td>
+                      <td rowspan="{{ order.items|length }}" td style="width: 150px;">Not Approved Yet</td>
                     {% endif %}
                   </td>
                 {% endif %}
               {% endif %}
-                <td>{{ drug_order.drug.name }}</td>
+                <td td style="width: 150px;">{{ drug_order.drug.name }}</td>
                 <td>&#36;{{ drug_order.drug.price }}</td>
                 <td>{{ drug_order.quantity }}</td>
                 <td>
@@ -74,7 +74,7 @@ td {
                   {% endif %}
                 </td>
                 {% if loop.first %}
-                <td rowspan="{{ order.items|length }}" td style="width: 250px;">
+                <td rowspan="{{ order.items|length }}" td style="width: 150px;">
                   {% if drug_order.prescription_approved %}
                     {% if drug_order.paid %}
                       Paid via CC
@@ -87,7 +87,7 @@ td {
                     Not Approved Yet
                   {% endif %}
                 </td>
-                  <td rowspan="{{ order.items|length }}">{{ drug_order.date_delivered.strftime('%Y-%m-%d %H:%M:%S') if drug_order.date_delivered else ('Not Approved Yet' if not drug_order.prescription_approved else 'Not Delivered Yet') }}</td>
+                  <td rowspan="{{ order.items|length }}" td style="width: 150px;">{{ drug_order.date_delivered.strftime('%Y-%m-%d %H:%M:%S') if drug_order.date_delivered else ('Not Approved Yet' if not drug_order.prescription_approved else 'Not Delivered Yet') }}</td>
                   <td rowspan="{{ order.items|length }}">
                     {% if drug_order.image_file %}
                         <div style="text-align: center;">
