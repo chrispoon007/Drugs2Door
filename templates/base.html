@@ -16,17 +16,11 @@
     
     
 </head>
-{% if request.endpoint != 'home' %}
 <style>
     .logo {
-        height: 80px;
-        width: 80px;
+        height: 120px;
+        width: 120px;
         margin-right: 10px;
-    }
-    
-    .logo {
-        height: 80px;
-        width: 80px;
     }
     .header {
         display: flex;
@@ -49,7 +43,6 @@
         color:#FF6300
     }
 </style>
-{% endif %}
 <body>
     <nav>
         <a href="{{ url_for('home') }}">
@@ -100,6 +93,10 @@
     </style>
 
         <div class="wrapper">
+            <div class="header">
+                <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Drugs2Door Logo" class="logo"></a>   
+                <h1>Drugs2Door!</h1>
+            </div>
             <div class="first-wrapper">
                 <h1> Your Dose Delivered, Stat!</h1>
             </div>

@@ -66,9 +66,9 @@ td {
                 <td td style="width: 150px;">{{ drug_order.drug.name }}</td>
                 <td>&#36;{{ drug_order.drug.price }}</td>
                 <td>{{ drug_order.quantity }}</td>
-                <td>
-                  {% if drug_order.drug is not none %}
-                    &#36;{{ drug_order.drug.price * drug_order.quantity }}
+                <td td style="width: 150px;">
+                  {% if drug_order.quantity is not none %}
+                        ${{ drug_order.drug.price * drug_order.quantity }}
                   {% else %}
                     No Drug Yet
                   {% endif %}
