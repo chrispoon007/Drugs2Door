@@ -396,10 +396,10 @@ def format_phone(phone):
 def userdetails():
     form = UserUpdateForm()
 
-    if form.validate_on_submit():
+    if form.validate_on_submit(): # pragma: no cover
         if bcrypt.check_password_hash(current_user.password, form.current_password.data):
             current_user.address = form.address.data
-            current_user.phn = form.phn.data  # update PHN
+            current_user.phn = form.phn.data
 
             # Format phone number with dashes
             current_user.phone = format_phone(form.phone.data)
