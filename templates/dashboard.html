@@ -17,21 +17,27 @@
   {% endfor %}
   
   {% if current_user.role_id != 1 %}
-  <div style="border: 1px solid #ccc; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); width: auto; margin: 0 auto;">
-    {% if ns.unpaid_approved_count > 0 %}
-      <p>{{ ns.unpaid_approved_count }} Prescriptions Approved & Awaiting Payment - <a href="{{ url_for('orders') }}">Pay Now</a></p>
+  <div style="border: 1px solid #ccc; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); width: auto; margin: 20px auto;">
+    {% if unpaid_approved_count > 0 %}
+    <p>{{ unpaid_approved_count }} Prescriptions Approved & Awaiting Payment - <a href="{{ url_for('orders') }}">Pay Now</a></p>
     {% else %}
       <p>No Unpaid Prescriptions - <a href="{{ url_for('orders') }}">View Orders</a></p>
     {% endif %}
   </div>
-  {% endif %}
-  
-  {% if current_user.role_id != 1 %}
+
   <div style="border: 1px solid #ccc; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); width: auto; margin: 20px auto;">
     {% if total_unapproved_count > 0 %}
       <p>{{ total_unapproved_count }} Unapproved Prescriptions - <a href="{{ url_for('orders') }}">View Orders</a></p>
     {% else %}
       <p>No Unapproved Prescriptions - <a href="{{ url_for('orders') }}">View Orders</a></p>
+    {% endif %}
+  </div>
+
+  <div style="border: 1px solid #ccc; padding: 20px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15); width: auto; margin: 20px auto;">
+    {% if denied_count > 0 %}
+      <p>{{ denied_count }} Denied Prescriptions - <a href="{{ url_for('orders') }}">View Orders</a></p>
+    {% else %}
+      <p>No Denied Prescriptions - <a href="{{ url_for('orders') }}">View Orders</a></p>
     {% endif %}
   </div>
 {% endif %}

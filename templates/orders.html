@@ -48,9 +48,21 @@ td {
             <tr>
                 {% if loop.first %}
                   <td rowspan="{{ order.items|length }}">{{ order.id }}</td>
-                  <td rowspan="{{ order.items|length }}">{{ drug_order.date_ordered.strftime('%Y-%m-%d %H:%M') }}</td>
-                  <td rowspan="{{ order.items|length }}">{{ 'Yes' if drug_order.prescription_approved else 'No' }}</td>
+                  <td rowspan="{{ order.items|length }}">{{ drug_order.date_ordered.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                  {% if drug_order.prescription_approved %}
+                    <td rowspan="{{ order.items|length }}">Yes</td>
+                  {% else %}
+                    {% if drug_order.prescription_approved is false %}
+                      <td rowspan="{{ order.items|length }}">
+                        Denied
+                        <button onclick="openDenyReasonModal({{ drug_order.id }}, this)">View Reason</button>
+                      </td>
+                    {% else %}
+                      <td rowspan="{{ order.items|length }}">Not Approved Yet</td>
+                    {% endif %}
+                  </td>
                 {% endif %}
+              {% endif %}
                 <td>{{ drug_order.drug.name }}</td>
                 <td>&#36;{{ drug_order.drug.price }}</td>
                 <td>{{ drug_order.quantity }}</td>
@@ -124,6 +136,39 @@ td {
   </div>
 {% endif %}
 <div class="modal-content" style="margin-top: 80px;">  
+
+<style>
+    #denyReasonModal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        border: 2px solid black;
+        padding: 20px;
+        display: none;
+    }
+</style>
+
+  <!-- Deny Reason modal -->
+<div id="denyReasonModal" class="modal" tabindex="-1" role="dialog" style="display: none;">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Deny Reason</h5>
+        <button type="button" class="close" onclick="document.getElementById('denyReasonModal').style.display='none'">
+          <span>&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="denyReasonText">
+        <!-- Deny reason will be inserted here -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('denyReasonModal').style.display='none'">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Payment form -->
 <div id="paymentForm" class="modal" tabindex="-1" role="dialog" style="display: none;">
   <div class="modal-dialog" role="document">
@@ -280,5 +325,31 @@ function requestRefill() {  // Removed orderId
     var data = JSON.stringify({"orderId": window.orderId});  // Use window.orderId
     xhr.send(data);
 }
+
+function openDenyReasonModal(orderId, buttonElement) {
+        // Send AJAX request to server to get deny reason
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "/getDenyReason", true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+                var json = JSON.parse(xhr.responseText);
+                if (json.success) {
+                    document.getElementById('denyReasonText').textContent = json.denyReason;
+                    var modal = document.getElementById('denyReasonModal');
+                    modal.style.display = 'block';
+                } else {
+                    alert('Failed to get deny reason: ' + json.error);
+                }
+            }
+        };
+        var data = JSON.stringify({"orderId": orderId});
+        xhr.send(data);
+    }
+
+    // Add event listener to close button
+    document.getElementById('closeButton').addEventListener('click', function() {
+        document.getElementById('denyReasonModal').style.display = 'none';
+    });
 </script>
 {% endblock %}

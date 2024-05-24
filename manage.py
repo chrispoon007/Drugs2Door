@@ -67,7 +67,7 @@ def import_data():
 
 
 # Create a specified number of random orders
-def create_random_orders():
+def create_random_orders(): # pragma: no cover
   with app.app_context():
     users = User.query.join(Role).filter(Role.name != 'Pharmacist').all()  # only get users who are not pharmacists
     for user in users:
@@ -119,7 +119,7 @@ def create_pharmacist():
         db.session.add(pharmacist)
         db.session.commit()
 
-if __name__ == "__main__":
+if __name__ == "__main__": # pragma: no cover
     drop_tables()
     create_tables()
     import_data()
