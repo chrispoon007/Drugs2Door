@@ -4,14 +4,15 @@
 <style>
     .form-container {
         display: flex;
-        flex-direction: column;
-        justify-content: center;
+        flex-direction: row;
+        justify-content: space-around;
         align-items: center;
         margin-top: 50px;
-        border: 1px solid #ccc;
+        border: none;
         padding: 20px;
-        width: 350px;
-        margin: 0 auto;
+        margin-bottom: 100px;
+        width: 80%; /* Adjust this value as needed */
+        margin: 0 auto; 
     }
     .form-field {
         margin: 10px 0;
@@ -21,20 +22,41 @@
     }
     .form-field input {
         width: 100%;
+        height: 38px;
         padding: 10px;
         border-radius: 5px;
-        border: 1px solid #ccc;
+        border: 0.75px solid #012e41;
+        background-color: #Fefee6;
     }
     .form-field input[type="submit"] {
         cursor: pointer;
-        background-color: #4CAF50;
-        color: white;
+        background-color: #012e41;
+        color: #Fefee6;
         width: 100%;
+        font-weight: bold;
+    }
+    h2 {
+        color: #012e41;
+        font-weight: bold;
+    }
+    center-text {
+    text-align: center;
+    }
+    a {
+        color: #ff6300;
+    }
+    p {
+        margin-top: 20px;
+        font-weight: bold;
+        color: #012e41;
     }
 </style>
 
-<h2 style="text-align: center;">Register</h2>
+
+<h2 style="text-align: center;">Sign Up For Free </h2>
 <div class="form-container">
+    <a href="{{ url_for('login') }}"><img src="{{ url_for('static', filename='images/Register-logo.svg') }}" alt="" class="vector"></a>
+
     <form method="POST">
         {{ form.hidden_tag() }}
         <div class="form-field">
@@ -61,5 +83,8 @@
             {{ form.submit() }}
         </div>
     </form>
+</div>
+<div class = "center-text">
+    <p>Already have an account? <a href="{{ url_for('login') }}">Sign In</a></p>
 </div>
 {% endblock %}
