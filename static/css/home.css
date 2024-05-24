@@ -1,0 +1,203 @@
+body {
+    background-color: #FEFEE6;
+    font-family: Roboto, sans-serif;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.vector {
+    width: 300px;
+    height: 300px;
+}
+
+.wrapper {
+    display: flex;
+    margin-top: 5%;
+    margin-bottom: 12%;
+    flex-direction: column;
+}
+
+.second-wrapper {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 50px;
+    flex-direction: row;
+}
+
+.second-wrapper div h4 {
+    font-weight: 700;
+    margin-right: 24px;
+}
+
+.second-wrapper a {
+    margin-right: -100px;
+}
+
+.second-wrapper > div {
+    margin-left: -100px;
+}
+
+.third-wrapper {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-top: 50px;
+    flex-direction: row;
+}
+
+
+h1 {
+    font-weight: 700;
+}
+
+button {
+    background-color: var(--bone);
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 0.5em 0.5em;
+}
+
+.button {
+    color: var(--navy);
+    width: 15em;
+    height: 2.9em;
+    border: var(--navy) 0.1em solid;
+    border-radius: 50px;
+    transition: all 0.6s ease;
+  }
+
+  .button:hover {
+    background-color: var(--orange);
+    cursor: pointer;
+  }
+  
+  .button svg {
+    width: 1.6em;
+    margin: -0.2em 0.8em 1em;
+    position: absolute;
+    display: flex;
+    transition: all 0.6s ease;
+  }
+  
+  .button:hover svg {
+    transform: translateX(10px);
+  }
+
+  li {
+    list-style-type: disc;
+    margin-left: 15px;
+  }
+
+.third-wrapper > div {
+    margin-left: 100px;
+}
+
+.third-wrapper a {
+    margin-right: 100px;
+}
+
+.foot {
+    background-color: var(--navy);
+    display: flex;
+    height: 350px;
+    justify-content: space-around;
+    color: #FFF;
+    flex-direction: column;
+}
+
+.f-cont {
+    display: flex;
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-around;
+}
+
+.f-cont > div > h4 {
+    font-weight: bolder;
+    font-style: italic;
+    color: var(--bone);
+}
+
+.signup {
+    flex-direction: column;
+}
+
+.signup p {
+    font-weight: bold;
+}
+
+.subscription-form {
+    background-color: #f4f4f4;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0px 0px 10px 0px rgba(0,0,0,0.1);
+}
+
+
+.subscription-form form {
+    display: flex;
+    flex-direction: column;
+}
+
+.subscription-form input[type="email"] {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.subscription-form button {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #3498db;
+    color: white;
+    cursor: pointer;
+}
+
+.subscription-form button:hover {
+    background-color: var(--orange);
+}
+
+.second-container {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.inner-cont-1 {
+    display: flex;
+    flex-direction: column;
+    width: 250px;
+    text-align: left;
+}
+
+.inner-cont-1 p {
+    text-align: left;
+    font-weight: bold;
+    font-style: italic;
+}
+
+.inner-cont-1 h5 {
+    font-weight: bold;
+}
+
+.inner-cont-2 {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    height: 120px;
+}
+.inner-cont-2 h5 {
+    font-weight: bold;
+}
+
+.inner-cont-3 {
+    display: flex;
+    flex-direction: column-reverse;
+    text-align: right;
+    height: 120px;
+}
