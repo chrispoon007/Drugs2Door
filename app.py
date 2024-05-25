@@ -255,11 +255,17 @@ def review_order(order_id):
                 if status == 'approved' and not drug_order.prescription_approved:
                     drug_order.prescription_approved = True
                     drug_order.denyreason = None  # Clear the deny reason if the order is approved
-                    send_email(order.user.email, "Prescription Approved", 'Your prescription has been approved. Please proceed to <a href="' + base_url + 'orders">payment</a>.')
+                    if order.user is not None:
+                        send_email(order.user.email, "Prescription Approved", 'Your prescription has been approved. Please proceed to <a href="' + base_url + 'orders">payment</a>.')
+                    else:
+                        print(f"Order {order.id} has no associated user.")
                 elif status == 'denied' and drug_order.prescription_approved is not False:
                     drug_order.prescription_approved = False
                     drug_order.denyreason = deny_reason  # Set the deny reason if the order is denied
-                    send_email(order.user.email, "Prescription Denied", 'Your prescription has been denied. Reason: ' + deny_reason + '. Check your <a href="' + base_url + 'orders">orders</a> for more details.')
+                    if order.user is not None:
+                        send_email(order.user.email, "Prescription Denied", 'Your prescription has been denied. Reason: ' + deny_reason + '. Check your <a href="' + base_url + 'orders">orders</a> for more details.')
+                    else:
+                        print(f"Order {order.id} has no associated user.")
 
         # Add all new drug orders to the session
         for drug_order in drug_orders.values():
