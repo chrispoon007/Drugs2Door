@@ -1,21 +1,15 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, flash, send_from_directory, abort
+from flask import Flask, render_template, jsonify, request, redirect, url_for, flash, send_from_directory
 from pathlib import Path
 from db import db
 from models import Drug, Order, DrugOrder, User
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func, desc, distinct, create_engine
-from sqlalchemy.orm import Session
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo
+from sqlalchemy import func, distinct
 from flask_bcrypt import Bcrypt
-from flask_sqlalchemy import SQLAlchemy
 from forms import RegistrationForm, LoginForm, UserUpdateForm, UploadForm, SupportForm
 from flask_login import login_manager, login_required, current_user, login_user, LoginManager, logout_user
 from werkzeug.utils import secure_filename
 from datetime import datetime, timezone
 import os
-from collections import defaultdict
 import errno
 import smtplib
 from email.mime.multipart import MIMEMultipart

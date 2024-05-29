@@ -6,14 +6,13 @@ from flask import url_for, Flask, json
 from werkzeug.security import generate_password_hash
 from flask_bcrypt import Bcrypt
 from flask_login import login_user, current_user
-from datetime import datetime, timezone
+from datetime import datetime
 import io
 import os
 from sqlalchemy.orm import session
 from sqlalchemy import func
 import unittest
 from unittest.mock import patch, mock_open, MagicMock
-from forms import UserUpdateForm, SupportForm, LoginForm
 import shutil
 
 bcrypt = Bcrypt(app)
@@ -31,14 +30,14 @@ def client():
 @pytest.fixture(scope='module')
 def setup_database():
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'  # replace with your actual database URI
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db' 
     app.config['TESTING'] = True
 
     db.init_app(app)
 
     with app.app_context():
         db.create_all()
-    yield db  # This line was missing
+    yield db  
     with app.app_context():
         db.drop_all()
 
@@ -102,10 +101,10 @@ def test_invalid_post_request(client, setup_database):
     setup_database.session.commit()
 
     rv = client.post('/review_order/1', data={})
-    assert rv.status_code == 302  # Bad Request
+    assert rv.status_code == 302 
 
     rv = client.post('/review_order/1', data={'status': 'approved'})
-    assert rv.status_code == 302  # Bad Request
+    assert rv.status_code == 302 
 
 def test_unauthorized_post_request(client, setup_database):
     order = Order()
@@ -295,8 +294,8 @@ def test_dashboard_pharmacist(client, setup_database):
     setup_database.session.commit()
 
     # Create some DrugOrders
-    drug_order1 = DrugOrder(prescription_approved=None, order_id=order.id, date_ordered=datetime.now())  # added `date_ordered`
-    drug_order2 = DrugOrder(prescription_approved=None, order_id=order.id, date_ordered=datetime.now()) # use `order_id` instead of `user`
+    drug_order1 = DrugOrder(prescription_approved=None, order_id=order.id, date_ordered=datetime.now()) 
+    drug_order2 = DrugOrder(prescription_approved=None, order_id=order.id, date_ordered=datetime.now())
     setup_database.session.add(drug_order1)
     setup_database.session.add(drug_order2)
     setup_database.session.commit()
@@ -327,9 +326,9 @@ def test_userdetails_route(client, setup_database):
     setup_database.session.commit()
 
     # Create some DrugOrders
-    drug_order1 = DrugOrder(prescription_approved=None, order_id=order.id, date_ordered=datetime.now())  # added `date_ordered`
-    drug_order2 = DrugOrder(prescription_approved=False, order_id=order.id, date_ordered=datetime.now())  # added `date_ordered`
-    drug_order3 = DrugOrder(prescription_approved=True, paid=False, order_id=order.id, date_ordered=datetime.now())   # use `order_id` instead of `user`
+    drug_order1 = DrugOrder(prescription_approved=None, order_id=order.id, date_ordered=datetime.now())  
+    drug_order2 = DrugOrder(prescription_approved=False, order_id=order.id, date_ordered=datetime.now())  
+    drug_order3 = DrugOrder(prescription_approved=True, paid=False, order_id=order.id, date_ordered=datetime.now())  
     setup_database.session.add(drug_order1)
     setup_database.session.add(drug_order2)
     setup_database.session.add(drug_order3)
@@ -338,9 +337,9 @@ def test_userdetails_route(client, setup_database):
     rv = client.get('/dashboard')
     assert rv.status_code == 200
     assert b'Dashboard' in rv.data
-    assert b'1' in rv.data  # The user should see 1 unapproved order
-    assert b'1' in rv.data  # The user should see 1 denied order
-    assert b'1' in rv.data  # The user should see 1 unpaid approved order
+    assert b'1' in rv.data 
+    assert b'1' in rv.data 
+    assert b'1' in rv.data
 
 def test_userdetails_route(client, setup_database):
     # Login as test user
@@ -356,12 +355,12 @@ def test_userdetails_route(client, setup_database):
 
     # Check if user is correctly logged in
     with client.session_transaction() as session:
-        print(session.keys())  # Should print all keys in the session
-        print(session.get('user_id'))  # Should print the user's id if 'user_id' is the correct key
+        print(session.keys()) 
+        print(session.get('user_id'))  
 
     # Test GET request
     response = client.get('/userdetails')
-    print(response.data)  # Should print the response data
+    print(response.data) 
     assert response.status_code == 200
     assert b'User Details' in response.data
 
@@ -538,7 +537,7 @@ class TestSupportAndLoginRoutes(unittest.TestCase):
             phn='1234567890',
             password='testpassword'
         ), follow_redirects=False)
-        assert response.status_code == 200 # 302 is the status code for a redirect
+        assert response.status_code == 200
 
     @patch('forms.RegistrationForm')
     @patch('models.User.query.filter')
@@ -630,7 +629,7 @@ class TestUploadRoute(unittest.TestCase):
         self.client = app.test_client()
 
         with app.app_context():
-            db.create_all()  # create all tables in the database
+            db.create_all()
             # Ensure the upload directory exists
             os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
@@ -642,10 +641,10 @@ class TestUploadRoute(unittest.TestCase):
         }
         with app.app_context():
             with self.client:
-                user = User(name="test", phn="1234567890", email='test@test.com', password='test')  # replace with your actual User model
+                user = User(name="test", phn="1234567890", email='test@test.com', password='test')
                 db.session.add(user)
                 db.session.commit()
-                with app.test_request_context():  # create a request context
+                with app.test_request_context():
                     login_user(user)
                 response = self.client.post('/upload', content_type='multipart/form-data', data=data)
                 assert response.status_code == 200
@@ -664,12 +663,12 @@ class TestPayRoute:
         self.client = app.test_client()
 
         with app.app_context():
-            db.create_all()  # create all tables in the database
+            db.create_all()
 
     def teardown_method(self):
         with app.app_context():
             db.session.remove()
-            db.drop_all()  # drop all tables in the database
+            db.drop_all() 
 
     def test_pay_no_order_id(self):
         response = self.client.post('/pay', json={})
@@ -686,12 +685,12 @@ class TestPayRoute:
     def test_pay_success(self):
         with app.app_context():
             # Create an Order with some items
-            order = Order()  # replace with your actual Order model
+            order = Order()  
             db.session.add(order)
             db.session.commit()
 
             # Now order.id is not None
-            drug_order = DrugOrder(prescription_approved=None, order_id=order.id, date_ordered=datetime.now())  # replace with your actual DrugOrder model
+            drug_order = DrugOrder(prescription_approved=None, order_id=order.id, date_ordered=datetime.now()) 
             db.session.add(drug_order)
             db.session.commit()
 
