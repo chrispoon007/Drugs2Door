@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="content">
 <style>
   table, td {
   border-color: #012E41;
@@ -15,8 +16,12 @@ td {
   border-right: none;
   border-bottom: 1.15px solid #ff6300
 }
-</style>
 
+.content {
+    min-height: calc(100vh - 350px);
+}
+
+</style>
 <h2>Orders/Refills</h2>
 
 {% if current_user.is_authenticated %}
@@ -135,8 +140,6 @@ td {
     <a href="{{ url_for('login') }}">Login</a>
   </div>
 {% endif %}
-<div class="modal-content" style="margin-top: 80px;">  
-
 <style>
     #denyReasonModal {
         position: fixed;
@@ -352,4 +355,5 @@ function openDenyReasonModal(orderId, buttonElement) {
         document.getElementById('denyReasonModal').style.display = 'none';
     });
 </script>
+</div>
 {% endblock %}
