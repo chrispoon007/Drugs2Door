@@ -60,14 +60,14 @@
         <a href="{{ url_for('upload') }}" class="h5">Upload Prescription</a>
         <a href="{{ url_for('orders') }}" class="h5">Orders</a>
             <div class="right-align d-flex align-items-center my-auto">
-                <span>Welcome,<a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
+                <span>Welcome idjasidajdiasj<a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
                 <a href="{{ url_for('support') }}"><i class="fa fa-question-circle"></i> Support</a> |
                 <a href="{{ url_for('logout') }}"> <i class="fa fa-user"></i> Logout</a>
         {% elif current_user.role_id == 1 %}
         <a href="{{ url_for('dashboard') }}" class="h5">Pharmacist Dashboard</a>
         <a href="{{ url_for('pharmacistdash') }}" class="h5">All Orders</a>
             <div class="right-align d-flex align-items-center my-auto">
-                <span>Welcome <a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
+                <span style="font-size: 115%;">Welcome, <a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
                 <a href="{{ url_for('support') }}">Support</a> |
                 <a href="{{ url_for('logout') }}">Logout</a>
                 {% endif %}
