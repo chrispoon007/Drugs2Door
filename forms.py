@@ -1,12 +1,12 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, TextAreaField, IntegerField, FormField, FieldList, BooleanField, HiddenField
+from wtforms import StringField, PasswordField, SubmitField, TextAreaField
 from wtforms.validators import DataRequired, Optional, Email, EqualTo, Length, Regexp, ValidationError
 from models import User
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 
 def password_complexity(form, field):
     password = field.data
-    if password:  # Only check complexity if a password is provided
+    if password:
         if len(password) < 6 or not any(char.isdigit() for char in password) or not any(char.isalpha() for char in password) or not any(not char.isalnum() for char in password):
             raise ValidationError("Password must be at least 6 characters long, contain a number, a letter, and a symbol.")
 

@@ -16,17 +16,11 @@
     
     
 </head>
-{% if request.endpoint != 'home' %}
 <style>
     .logo {
-        height: 80px;
-        width: 80px;
+        height: 120px;
+        width: 120px;
         margin-right: 10px;
-    }
-    
-    .logo {
-        height: 80px;
-        width: 80px;
     }
     .header {
         display: flex;
@@ -49,7 +43,6 @@
         color:#FF6300
     }
 </style>
-{% endif %}
 <body>
     <nav>
         <a href="{{ url_for('home') }}">
@@ -67,14 +60,14 @@
         <a href="{{ url_for('upload') }}" class="h5">Upload Prescription</a>
         <a href="{{ url_for('orders') }}" class="h5">Orders</a>
             <div class="right-align d-flex align-items-center my-auto">
-                <span>Welcome,<a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
+                <span>Welcome idjasidajdiasj<a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
                 <a href="{{ url_for('support') }}"><i class="fa fa-question-circle"></i> Support</a> |
                 <a href="{{ url_for('logout') }}"> <i class="fa fa-user"></i> Logout</a>
         {% elif current_user.role_id == 1 %}
         <a href="{{ url_for('dashboard') }}" class="h5">Pharmacist Dashboard</a>
         <a href="{{ url_for('pharmacistdash') }}" class="h5">All Orders</a>
             <div class="right-align d-flex align-items-center my-auto">
-                <span>Welcome <a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
+                <span style="font-size: 115%;">Welcome, <a href="{{ url_for('userdetails') }}">{{ current_user.name }}</a></span> |
                 <a href="{{ url_for('support') }}">Support</a> |
                 <a href="{{ url_for('logout') }}">Logout</a>
                 {% endif %}
@@ -100,6 +93,10 @@
     </style>
 
         <div class="wrapper">
+            <div class="header">
+                <a href="{{ url_for('home') }}"><img src="{{ url_for('static', filename='images/logo.png') }}" alt="Drugs2Door Logo" class="logo"></a>   
+                <h1>Drugs2Door!</h1>
+            </div>
             <div class="first-wrapper">
                 <h1> Your Dose Delivered, Stat!</h1>
             </div>

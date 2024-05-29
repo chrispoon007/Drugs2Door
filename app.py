@@ -1,22 +1,19 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, flash, send_from_directory, abort
+from flask import Flask, render_template, jsonify, request, redirect, url_for, flash, send_from_directory
 from pathlib import Path
 from db import db
 from models import Drug, Order, DrugOrder, User
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import func, desc, distinct, create_engine
-from sqlalchemy.orm import Session
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Email, EqualTo
+from sqlalchemy import func, distinct
 from flask_bcrypt import Bcrypt
-from flask_sqlalchemy import SQLAlchemy
 from forms import RegistrationForm, LoginForm, UserUpdateForm, UploadForm, SupportForm
 from flask_login import login_manager, login_required, current_user, login_user, LoginManager, logout_user
 from werkzeug.utils import secure_filename
 from datetime import datetime, timezone
 import os
-from collections import defaultdict
 import errno
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 # Initialize Flask application
 app = Flask(__name__)
@@ -30,9 +27,16 @@ bcrypt = Bcrypt(app)
 # Secret key for form validation
 app.config["SECRET_KEY"] = '12345678901'
 
+app.config['LOGIN_VIEW'] = 'login'
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+# To Handle Unauthorized Access
+@app.errorhandler(401)
+def handle_401(e):
+    return redirect(url_for('login'))
 
 # Registration form
 @app.route("/register", methods=['GET', 'POST'])
@@ -73,6 +77,7 @@ def get_uploader_name():
 app.config['UPLOAD_FOLDER'] = os.path.join(app.instance_path, 'uploads')
 
 @app.route('/upload', methods=['GET', 'POST'])
+@login_required
 def upload():
     form = UploadForm()
     filename = None
@@ -144,6 +149,32 @@ def pharmacistdash():
     # Pass the sorted lists and drug orders to the template
     return render_template('pharmacistdash.html', unapproved_prescriptions=unapproved_prescriptions, approved_orders=approved_orders, denied_orders=denied_orders, drug_orders=drug_orders, page_unapproved=page_unapproved, page_approved=page_approved, page_denied=page_denied)
 
+def send_email(to_address, subject, message):
+    # setup the parameters of the message
+    from_address = 'drhansgruber2911@gmail.com'
+    password = 'fifm plgj bbxc infw'  # your email password
+
+    # setup the MIME
+    msg = MIMEMultipart()
+    msg['From'] = from_address
+    msg['To'] = to_address
+    msg['Subject'] = subject
+
+    # add in the message body
+    msg.attach(MIMEText(message, 'plain'))
+
+    #create server
+    server = smtplib.SMTP('smtp.gmail.com: 587')
+
+    server.starttls()
+
+    # Login Credentials for sending the mail
+    server.login(msg['From'], password)
+
+    # send the message via the server.
+    server.sendmail(msg['From'], msg['To'], msg.as_string())
+
+    server.quit()
 
 @app.route('/review_order/<int:order_id>', methods=['GET', 'POST'])
 @login_required
@@ -159,7 +190,6 @@ def review_order(order_id):
 
     # Check if the form is submitted
     if request.method == 'POST':
-
         # Update the order status based on the form data
         status = request.form.get('status')
         deny_reason = request.form.get('denyReason')  # Get the deny reason from the form data
@@ -214,12 +244,22 @@ def review_order(order_id):
                     drug_order.refills = int(value)
 
                 # Update the prescription_approved status and deny reason
-                if status == 'approved':
+                base_url = request.url_root  # This will give you the base URL of your app
+
+                if status == 'approved' and not drug_order.prescription_approved:
                     drug_order.prescription_approved = True
                     drug_order.denyreason = None  # Clear the deny reason if the order is approved
-                elif status == 'denied':
+                    if order.user is not None:
+                        send_email(order.user.email, "Prescription Approved", 'Your prescription has been approved. Please proceed to <a href="' + base_url + 'orders">payment</a>.')
+                    else:
+                        print(f"Order {order.id} has no associated user.")
+                elif status == 'denied' and drug_order.prescription_approved is not False:
                     drug_order.prescription_approved = False
                     drug_order.denyreason = deny_reason  # Set the deny reason if the order is denied
+                    if order.user is not None:
+                        send_email(order.user.email, "Prescription Denied", 'Your prescription has been denied. Reason: ' + deny_reason + '. Check your <a href="' + base_url + 'orders">orders</a> for more details.')
+                    else:
+                        print(f"Order {order.id} has no associated user.")
 
         # Add all new drug orders to the session
         for drug_order in drug_orders.values():
@@ -240,6 +280,7 @@ def review_order(order_id):
     return render_template('review_order.html', order=order, drug_orders=drug_orders, drugs=drugs, drug_order=drug_order)
 
 @app.route('/track', methods=['GET'])
+@login_required
 def track():
     order_id = request.args.get('order_id', default = 1, type = int)
     return render_template('track.html', order_id=order_id)
@@ -250,6 +291,7 @@ def calculate_total_payment(order):
 
 # Orders route
 @app.route('/orders')
+@login_required
 def orders():
     orders = Order.query.filter_by(user_id=current_user.id).join(DrugOrder).order_by(DrugOrder.date_ordered.desc()).all()
     return render_template('orders.html', orders=orders, calculate_total_payment=calculate_total_payment)
@@ -361,6 +403,7 @@ ns = Namespace()
 
 # Dashboard Route
 @app.route("/dashboard")
+@login_required
 def dashboard():
     total_unapproved_count = 0  # Define total_unapproved_count here
     denied_count = 0  # Define denied_count here
