@@ -3,11 +3,29 @@
 {% block content %}
 
 <!-- Unapproved Prescriptions -->
+<style>
+    table, td {
+  border-color: #012E41;
+}
+th {
+  background-color: #012E41;
+  color: #FEFEE6;
+  font-weight: bold;
+}
+td {
+  border-left: none;
+  border-right: none;
+  border-bottom: 1.15px solid #ff6300
+}
+#plain{
+    background-color: none;
+}
+</style>
 <h2>Unapproved Prescriptions</h2>
 <table class="table" id="unapprovedTable">
     <thead>
         <tr>
-            <th scope="col">#</th>
+            <th scope="col" id = 'plain'>#</th>
             <th scope="col">Name</th>
             <th scope="col">Email</th>
             <th scope="col">PHN</th>
