@@ -91,7 +91,7 @@ def create_random_orders(): # pragma: no cover
             # Only mark as paid if the prescription is approved
             paid = False if prescription_approved is not True else random.choice([True, False])
 
-        num_drugs = random.randint(1, 3)  # select a random number of drugs
+        num_drugs = random.randint(1, 3)  # select a random number of drugs between 1 and 3
         for _ in range(num_drugs):
             drug_stmt = db.select(Drug).order_by(func.random()).limit(1)
             drug = db.session.execute(drug_stmt).scalar()

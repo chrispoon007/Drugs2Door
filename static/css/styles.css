@@ -1,8 +1,7 @@
 :root {
-    --pill-orange: #FF6300;
+    --orange: #FF6300;
     --bone: #FEFEE6;
     --navy: #012E41;
-    /* Add more colors as needed */
 }
 
 body {
@@ -138,5 +137,3 @@ th {
     margin-top: 20px;
     gap: 10px;
 }
-
-

@@ -87,14 +87,14 @@
 </style>
 
 <script>
-    var counter = 0;  // Start with 0 to match the index in the drug_orders list
+    var counter = 0; 
     
     document.getElementById('addDrugButton').addEventListener('click', function() {
         if (counter < 5) {
             var drugsContainer = document.getElementById('drugsContainer');
 
             // Fetch the list of drugs from the server
-            fetch('/api/drugs')  // Replace with your actual API endpoint
+            fetch('/api/drugs') 
                 .then(response => response.json())
                 .then(drugs => {
                     // Create new drug group
@@ -126,9 +126,9 @@
                     drugNameLabel.htmlFor = 'drug_orders-' + counter + '-name';
                     drugNameLabel.textContent = 'Drug Name:';
                     var drugNameSelect = document.createElement('select');
-                    drugNameSelect.name = 'drug_orders-' + counter + '-name';  // Changed id to name
+                    drugNameSelect.name = 'drug_orders-' + counter + '-name';  
                     drugNameSelect.className = 'form-control';
-                    drugNameSelect.required = true;  // Add required attribute
+                    drugNameSelect.required = true; 
                     
                     // Add options to the select element
                     for (var i = 0; i < drugs.length; i++) {
@@ -148,11 +148,11 @@
                     quantityLabel.htmlFor = 'drug_orders-' + counter + '-quantity';
                     quantityLabel.textContent = 'Quantity:';
                     var quantityInput = document.createElement('input');
-                    quantityInput.name = 'drug_orders-' + counter + '-quantity';  // Changed id to name
-                    quantityInput.type = 'number';  // Set the type to number
-                    quantityInput.min = '0';  // Set the minimum value to 0
+                    quantityInput.name = 'drug_orders-' + counter + '-quantity'; 
+                    quantityInput.type = 'number';  
+                    quantityInput.min = '0';  
                     quantityInput.className = 'form-control';
-                    quantityInput.required = true;  // Add required attribute
+                    quantityInput.required = true; 
                     quantityGroup.appendChild(quantityLabel);
                     quantityGroup.appendChild(quantityInput);
 
@@ -163,11 +163,11 @@
                     refillLabel.htmlFor = 'drug_orders-' + counter + '-refills';
                     refillLabel.textContent = 'Refill:';
                     var refillInput = document.createElement('input');
-                    refillInput.name = 'drug_orders-' + counter + '-refills';  // Changed id to name
-                    refillInput.type = 'number';  // Set the type to number
-                    refillInput.min = '0';  // Set the minimum value to 0
+                    refillInput.name = 'drug_orders-' + counter + '-refills';  
+                    refillInput.type = 'number'; 
+                    refillInput.min = '0';  
                     refillInput.className = 'form-control';
-                    refillInput.required = true;  // Add required attribute
+                    refillInput.required = true;  
                     refillGroup.appendChild(refillLabel);
                     refillGroup.appendChild(refillInput);
         
@@ -202,7 +202,7 @@
       var largeImage = document.createElement('img');
       largeImage.src = src;
       largeImage.style.display = 'block';
-      largeImage.style.width = '500px'; // or the width you want
+      largeImage.style.width = '500px'; 
       largeImage.style.height = 'auto';
 
       var overlay = document.createElement('div');

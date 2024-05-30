@@ -1,7 +1,6 @@
 from sqlalchemy import Boolean, Float, Numeric, ForeignKey, Integer, String, DateTime
 from sqlalchemy.orm import relationship
 from db import db
-from datetime import datetime
 
 # Define the Role model
 class Role(db.Model):
